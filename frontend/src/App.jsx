@@ -468,6 +468,37 @@ function App() {
   }
   const completedCount = tasks.filter(task => task.status === "DONE").length;
   const activeCount = tasks.filter(task => task.status !== "DONE").length;
+  // Dashboard analytics calculated from live workspace data.
+  const dashboardToday = new Date();
+  dashboardToday.setHours(0, 0, 0, 0);
+  const dashboardTomorrow = new Date(dashboardToday);
+  dashboardTomorrow.setDate(dashboardTomorrow.getDate() + 1);
+  const dashboardWeekEnd = new Date(dashboardToday);
+  dashboardWeekEnd.setDate(dashboardWeekEnd.getDate() + 7);
+  dashboardWeekEnd.setHours(23, 59, 59, 999);
+  const openTasks = tasks.filter(task => task.status !== "DONE");
+  const datedOpenTasks = openTasks.filter(task => {
+    if (!task.dueDate) return false;
+    return !Number.isNaN(new Date(task.dueDate).getTime());
+  });
+  const overdueTasks = datedOpenTasks.filter(task =>
+    new Date(task.dueDate) < dashboardToday
+  );
+  const dueTodayTasks = datedOpenTasks.filter(task => {
+    const due = new Date(task.dueDate);
+    return due >= dashboardToday && due < dashboardTomorrow;
+  });
+  const upcomingTasks = datedOpenTasks
+    .filter(task => {
+      const due = new Date(task.dueDate);
+      return due >= dashboardTomorrow && due <= dashboardWeekEnd;
+    })
+    .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+    .slice(0, 5);
+  const highPriorityTasks = openTasks.filter(task => task.priority === "HIGH");
+  const completionRate = tasks.length
+    ? Math.round((completedCount / tasks.length) * 100)
+    : 0;
   const notificationItems = useMemo(() => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -925,6 +956,56 @@ function App() {
               </div>
             </section>
           </div>
+            <section className="mb-8">
+              <div className="mb-4">
+                <h2 className="font-bold text-slate-900">Task health</h2>
+                <p className="mt-1 text-xs text-slate-400">A closer look at deadlines and productivity</p>
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                {[
+                  { label: "Completion rate", value: completionRate + "%", detail: completedCount + " of " + tasks.length + " tasks completed", color: "text-violet-600", bg: "bg-violet-50" },
+                  { label: "Overdue tasks", value: overdueTasks.length, detail: "Need your attention", color: "text-rose-600", bg: "bg-rose-50" },
+                  { label: "Due today", value: dueTodayTasks.length, detail: "Deadlines today", color: "text-amber-600", bg: "bg-amber-50" },
+                  { label: "High priority", value: highPriorityTasks.length, detail: "Unfinished high-priority tasks", color: "text-blue-600", bg: "bg-blue-50" }
+                ].map(item => (
+                  <div key={item.label} className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
+                    <div className="text-sm font-medium text-slate-500">{item.label}</div>
+                    <div className={"mt-3 text-3xl font-bold " + item.color}>{item.value}</div>
+                    <div className="mt-2 text-xs text-slate-400">{item.detail}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
+            <section className="mb-8 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm md:p-6">
+              <div className="mb-5 flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="font-bold text-slate-900">Upcoming deadlines</h2>
+                  <p className="mt-1 text-xs text-slate-400">Unfinished tasks due in the next seven days</p>
+                </div>
+                <span className="rounded-lg bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-600">{upcomingTasks.length} shown</span>
+              </div>
+              {upcomingTasks.length > 0 ? (
+                <div className="divide-y divide-slate-100">
+                  {upcomingTasks.map(task => (
+                    <div key={task.id} className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-semibold text-slate-800">{task.title}</div>
+                        <div className="mt-1 text-xs text-slate-400">{task.project?.name || "Project"} · {priorityLabel(task.priority)} priority</div>
+                      </div>
+                      <span className="shrink-0 rounded-lg bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600">{formatDate(task.dueDate)}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="rounded-xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-400">No upcoming deadlines in the next seven days.</p>
+              )}
+              {overdueTasks.length > 0 && (
+                <div className="mt-4 flex items-center gap-2 rounded-xl bg-rose-50 px-4 py-3 text-xs font-medium text-rose-700">
+                  <AlertCircle size={15} />
+                  {overdueTasks.length} overdue {overdueTasks.length === 1 ? "task needs" : "tasks need"} your attention.
+                </div>
+              )}
+            </section>
           </>)}
           {active === "Projects" && (
             <section className="mb-8 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
