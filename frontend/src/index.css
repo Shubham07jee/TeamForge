@@ -262,3 +262,71 @@ select:focus-visible {
     inset 0 1px 0 rgba(255,255,255,0.98);
   transform: translateY(-2px);
 }
+/* Primary buttons: brighter gradient and soft glow */
+.tf-primary-button {
+  background: linear-gradient(
+    110deg,
+    #7928ca 0%,
+    #a91bc2 48%,
+    #ff3d8d 100%
+  ) !important;
+  box-shadow:
+    0 5px 15px rgba(121, 40, 202, 0.22),
+    0 2px 7px rgba(255, 61, 141, 0.14);
+  transition: all 220ms ease;
+}
+.tf-primary-button:hover {
+  box-shadow:
+    0 8px 23px rgba(121, 40, 202, 0.30),
+    0 4px 12px rgba(255, 61, 141, 0.22);
+  transform: translateY(-1px);
+}
+/* Soft gradient depth behind selected navigation */
+.tf-sidebar nav button[class*="bg-violet-50"],
+.tf-mobile-sidebar nav button[class*="bg-violet-50"] {
+  background: linear-gradient(
+    105deg,
+    rgba(121, 40, 202, 0.12),
+    rgba(212, 20, 165, 0.075),
+    rgba(255, 61, 141, 0.09)
+  ) !important;
+  box-shadow:
+    inset 3px 0 0 #a91bc2,
+    0 3px 12px rgba(169, 27, 194, 0.075);
+}
+/* Inputs: soft tinted surfaces */
+.teamforge-app input,
+.teamforge-app select,
+.teamforge-app textarea {
+  background-color: #fefcff;
+  border-color: rgba(190, 155, 225, 0.35);
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+.teamforge-app input:focus,
+.teamforge-app select:focus,
+.teamforge-app textarea:focus {
+  border-color: rgba(169, 27, 194, 0.65);
+  box-shadow: 0 0 0 4px rgba(169, 27, 194, 0.09);
+}
+/* Gentle page entrance */
+.tf-content {
+  animation: aurora-content-in 420ms ease both;
+}
+@keyframes aurora-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tf-content,
+  .tf-stat-card,
+  .teamforge-app main section.rounded-2xl {
+    animation: none !important;
+    transition: none !important;
+  }
+}
