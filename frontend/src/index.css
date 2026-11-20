@@ -1,22 +1,210 @@
 @import "tailwindcss";
+/* =========================================
+   TEAMFORGE — AURORA WHITE DESIGN SYSTEM
+   ========================================= */
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #25213b;
+  background: #ffffff;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  --tf-purple: #7928ca;
+  --tf-violet: #a91bc2;
+  --tf-magenta: #d414a5;
+  --tf-pink: #ff3d8d;
+  --tf-border: #eeeaf5;
+  --tf-muted: #817b91;
+  --tf-surface: #ffffff;
+}
 * {
   box-sizing: border-box;
 }
 html {
   min-width: 320px;
-  background: #f7f8fc;
+  min-height: 100%;
+  background: #ffffff;
+  scroll-behavior: smooth;
 }
 body {
-  margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #1e293b;
-  -webkit-font-smoothing: antialiased;
+  margin: 0;
+  background: #ffffff;
+  color: #25213b;
 }
-button, input {
+button,
+input,
+textarea,
+select {
   font: inherit;
 }
 button {
   cursor: pointer;
+}
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid rgba(169, 27, 194, 0.2);
+  outline-offset: 2px;
+}
+::selection {
+  color: #7928ca;
+  background: rgba(212, 20, 165, 0.13);
+}
+/* Main workspace: mostly white with restrained aurora highlights */
+.teamforge-app {
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 88% 0%, rgba(212, 20, 165, 0.035), transparent 32%),
+    radial-gradient(ellipse at 8% 35%, rgba(121, 40, 202, 0.025), transparent 35%),
+    #fcfbfe;
+  color: #25213b;
+}
+/* Desktop navigation */
+.tf-sidebar {
+  background: rgba(255, 255, 255, 0.97);
+  border-color: #f0edf5;
+}
+.tf-sidebar nav button,
+.tf-mobile-sidebar nav button {
+  position: relative;
+  border: 1px solid transparent;
+  transition:
+    color 180ms ease,
+    background 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease;
+}
+.tf-sidebar nav button:hover,
+.tf-mobile-sidebar nav button:hover {
+  transform: translateX(2px);
+}
+.tf-sidebar nav button[class*="bg-violet-50"],
+.tf-mobile-sidebar nav button[class*="bg-violet-50"] {
+  border-color: rgba(169, 27, 194, 0.09);
+  background: linear-gradient(
+    105deg,
+    rgba(121, 40, 202, 0.09),
+    rgba(212, 20, 165, 0.055)
+  );
+  color: #7928ca;
+}
+.tf-sidebar nav button[class*="bg-violet-50"]::before,
+.tf-mobile-sidebar nav button[class*="bg-violet-50"]::before {
+  position: absolute;
+  top: 22%;
+  bottom: 22%;
+  left: -1px;
+  width: 3px;
+  border-radius: 0 5px 5px 0;
+  background: linear-gradient(180deg, #7928ca, #ff3d8d);
+  content: "";
+}
+/* Top navigation */
+.tf-topbar {
+  border-color: #f0edf5;
+  background: rgba(255, 255, 255, 0.88);
+}
+/* Content spacing */
+.tf-content {
+  width: 100%;
+}
+/* Dashboard statistic cards */
+.tf-stat-card {
+  border-color: #eeeaf5;
+  background: #ffffff;
+  box-shadow: 0 2px 10px rgba(45, 25, 75, 0.025);
+  transition:
+    transform 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+.tf-stat-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(169, 27, 194, 0.2);
+  box-shadow: 0 9px 26px rgba(87, 45, 125, 0.07);
+}
+/* Primary actions */
+.tf-primary-button {
+  border: 0;
+  background: linear-gradient(110deg, #7928ca 0%, #b21bb9 55%, #e52b9c 100%);
+  box-shadow: 0 5px 14px rgba(169, 27, 194, 0.16);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    filter 180ms ease;
+}
+.tf-primary-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: saturate(1.08);
+  box-shadow: 0 8px 20px rgba(169, 27, 194, 0.23);
+}
+.tf-primary-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+.tf-primary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+/* Panels and surfaces */
+.teamforge-app main section.rounded-2xl {
+  border-color: #eeeaf5;
+  box-shadow: 0 2px 12px rgba(45, 25, 75, 0.025);
+}
+/* Form controls */
+.teamforge-app input:not([type="checkbox"]),
+.teamforge-app textarea,
+.teamforge-app select {
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease;
+}
+.teamforge-app input:focus,
+.teamforge-app textarea:focus,
+.teamforge-app select:focus {
+  border-color: rgba(169, 27, 194, 0.55);
+  box-shadow: 0 0 0 3px rgba(169, 27, 194, 0.08);
+}
+/* Mobile navigation drawer */
+.tf-mobile-sidebar {
+  border-color: #eeeaf5;
+  box-shadow: 12px 0 40px rgba(40, 20, 60, 0.09);
+}
+/* Refined scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #ded5e9 transparent;
+}
+*::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+*::-webkit-scrollbar-thumb {
+  border-radius: 20px;
+  background: #ded5e9;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: #c8b4dc;
+}
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+@media (max-width: 640px) {
+  .tf-content {
+    padding-top: 1.5rem;
+    padding-bottom: 2rem;
+  }
 }
