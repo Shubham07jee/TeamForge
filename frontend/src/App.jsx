@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import {
   Activity, ArrowUpRight, Bell, CalendarDays, Check, CheckSquare,
-  CircleCheck, Command, FolderKanban, LayoutDashboard,
+  CircleCheck, FolderKanban, LayoutDashboard,
   LogOut, Plus, Search, Settings, Users, Zap, X
 } from "lucide-react";
 const API = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "");
@@ -353,8 +353,8 @@ function App() {
       <div className="flex min-h-screen items-center justify-center bg-[#f7f8fc] px-4 py-10">
         <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-xl shadow-slate-200/60">
           <div className="mb-8 flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-600 text-white">
-              <Command size={23}/>
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-50">
+              <img src="/teamforge-logo.svg" alt="TeamForge" className="h-7 w-7 object-contain" />
             </div>
             <div>
               <div className="text-xl font-bold text-slate-900">TeamForge</div>
@@ -415,7 +415,7 @@ function App() {
     <div className="min-h-screen bg-[#f7f8fc] text-slate-800">
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-[248px] flex-col border-r border-slate-200/80 bg-white px-5 py-6 lg:flex">
         <div className="mb-10 flex items-center gap-3 px-1">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 text-white shadow-lg shadow-violet-200"><Command size={22}/></div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 shadow-sm shadow-violet-100"><img src="/teamforge-logo.svg" alt="TeamForge" className="h-7 w-7 object-contain" /></div>
           <div><div className="text-lg font-bold tracking-tight text-slate-900">TeamForge</div><div className="text-[11px] font-medium text-slate-400">WORKSPACE</div></div>
         </div>
         <div className="mb-3 px-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">Workspace</div>
@@ -466,7 +466,7 @@ function App() {
         (mobileMenuOpen ? "translate-x-0" : "-translate-x-full")}>
         <div className="mb-9 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 text-white shadow-lg shadow-violet-200"><Command size={22}/></div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 shadow-sm shadow-violet-100"><img src="/teamforge-logo.svg" alt="TeamForge" className="h-7 w-7 object-contain" /></div>
             <span className="text-lg font-bold tracking-tight text-slate-900">TeamForge</span>
           </div>
           <button type="button" onClick={() => setMobileMenuOpen(false)} aria-label="Close menu" className="rounded-lg p-2 text-slate-400 hover:bg-slate-100">
@@ -519,7 +519,7 @@ function App() {
               aria-label="Open navigation menu"
               className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 lg:hidden"
             >
-              <span className="text-xl leading-none">☰</span>
+              <span className="text-xl leading-none">â˜°</span>
             </button>
             <div className="text-sm text-slate-400">Workspace <span className="mx-2">/</span><span className="font-semibold text-slate-800">{active}</span></div>
           </div>
@@ -558,7 +558,7 @@ function App() {
               { label: "Total projects", value: projects.length, change: "From your workspace", icon: FolderKanban, color: "bg-violet-50 text-violet-600" },
               { label: "Active tasks", value: activeCount, change: "Not yet completed", icon: Activity, color: "bg-blue-50 text-blue-600" },
               { label: "Completed tasks", value: completedCount, change: "Saved in database", icon: CircleCheck, color: "bg-emerald-50 text-emerald-600" },
-              { label: "Team members", value: "ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â", change: "Team API coming next", icon: Users, color: "bg-amber-50 text-amber-600" }
+              { label: "Team members", value: teamProjects.reduce((total, project) => total + (project.members?.length || 0), 0), change: "Across your projects", icon: Users, color: "bg-amber-50 text-amber-600" }
             ].map(stat => {
               const Icon = stat.icon;
               return <div key={stat.label} className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-100/70">
@@ -692,7 +692,7 @@ function App() {
                           <span className={"rounded-md px-2 py-1 text-[10px] font-semibold " + (task.priority === "HIGH" ? "bg-rose-50 text-rose-600" : task.priority === "MEDIUM" ? "bg-amber-50 text-amber-700" : "bg-slate-100 text-slate-500")}>{priorityLabel(task.priority)}</span>
                         </div>
                         {task.description && <p className="mt-2 text-xs leading-relaxed text-slate-500">{task.description}</p>}
-                        <p className="mt-2 text-xs text-slate-400">{task.project?.name || "Project"} Â· {formatDate(task.dueDate)}</p>
+                        <p className="mt-2 text-xs text-slate-400">{task.project?.name || "Project"} Ã‚Â· {formatDate(task.dueDate)}</p>
                         <select aria-label="Move task" value={task.status} onChange={e => updateTask(task.id, { status: e.target.value })} className="mt-3 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs">
                           <option value="TODO">Todo</option>
                           <option value="IN_PROGRESS">In progress</option>
@@ -931,7 +931,7 @@ function App() {
             </section>
           )}
           <footer className="mt-8 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
-            <span>Ãƒâ€šÃ‚Â© 2026 TeamForge. Built for teams that do great work.</span>
+            <span>&copy; 2026 TeamForge. Built for teams that do great work.</span>
             <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-emerald-500"/> Connected to TeamForge API</span>
           </footer>
         </div>
@@ -1058,4 +1058,6 @@ function App() {
   );
 }
 export default App;
+
+
 
