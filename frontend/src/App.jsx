@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Activity, ArrowUpRight, Bell, CalendarDays, Menu, ChevronDown, AlertCircle, Check, CheckSquare,
   CircleCheck, FolderKanban, LayoutDashboard,
-  LogOut, Plus, Search, Settings, Users, Zap, X
+  Eye, EyeOff, LogOut, Plus, Search, Settings, ShieldCheck, Sparkles, Users, Zap, X
 } from "lucide-react";
 const API = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "");
 async function api(path, options = {}, token = null) {
@@ -49,6 +49,9 @@ function App() {
   });
   const [authMode, setAuthMode] = useState("login");
   const [authForm, setAuthForm] = useState({ name: "", email: "", password: "" });
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -147,6 +150,16 @@ function App() {
   }, [token]);
   async function handleAuth(event) {
     event.preventDefault();
+    if (authMode === "register") {
+      if (authForm.password.length < 8) {
+        setError("Your password must contain at least 8 characters.");
+        return;
+      }
+      if (authForm.password !== confirmPassword) {
+        setError("Your passwords do not match. Please try again.");
+        return;
+      }
+    }
     setAuthLoading(true);
     setError("");
     try {
@@ -548,7 +561,14 @@ function App() {
       .slice(0, 6);
   }, [tasks]);
   const firstName = user?.name?.split(" ")[0] || "there";
-  const initials = (user?.name || "TF")
+  const passwordStrengthScore = [
+    authForm.password.length >= 8,
+    /[A-Z]/.test(authForm.password),
+    /[a-z]/.test(authForm.password),
+    /\d/.test(authForm.password),
+    /[^A-Za-z0-9]/.test(authForm.password)
+  ].filter(Boolean).length;
+  const passwordStrengthLabel = ["", "Very weak", "Weak", "Fair", "Good", "Strong"][passwordStrengthScore];  const initials = (user?.name || "TF")
     .split(" ")
     .map(part => part[0])
     .join("")
@@ -556,63 +576,197 @@ function App() {
     .toUpperCase();
   if (!token) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f7f8fc] px-4 py-10">
-        <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-xl shadow-slate-200/60">
-          <div className="mb-8 flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-50">
-              <img src="/teamforge-logo.svg" alt="TeamForge" className="h-7 w-7 object-contain" />
-            </div>
-            <div>
-              <div className="text-xl font-bold text-slate-900">TeamForge</div>
-              <div className="text-[11px] font-medium tracking-widest text-slate-400">YOUR WORKSPACE</div>
-            </div>
-          </div>
-          <h1 className="text-2xl font-bold text-slate-900">
-            {authMode === "login" ? "Welcome back" : "Create your account"}
-          </h1>
-          <p className="mt-2 text-sm text-slate-500">
-            {authMode === "login"
-              ? "Sign in to continue to your workspace."
-              : "Get started with your TeamForge workspace."}
-          </p>
-          {error && <div className="mt-5 rounded-xl bg-rose-50 p-3 text-sm text-rose-700">{error}</div>}
-          <form onSubmit={handleAuth} className="mt-6 space-y-4">
-            {authMode === "register" && (
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-600">Full name</label>
-                <input required value={authForm.name}
-                  onChange={e => setAuthForm({ ...authForm, name: e.target.value })}
-                  className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"
-                  placeholder="Your name"/>
+      <div className="tf-auth-shell">
+        <div className="tf-auth-orb tf-auth-orb-one"></div>
+        <div className="tf-auth-orb tf-auth-orb-two"></div>
+        <div className="tf-auth-orb tf-auth-orb-three"></div>
+        <div className="tf-auth-layout">
+          <section className="tf-auth-showcase">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/10 shadow-lg backdrop-blur-xl">
+                <img src="/teamforge-logo.svg" alt="TeamForge" className="h-8 w-8 object-contain" />
               </div>
-            )}
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-600">Email address</label>
-              <input required type="email" value={authForm.email}
-                onChange={e => setAuthForm({ ...authForm, email: e.target.value })}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"
-                placeholder="you@example.com"/>
+              <div>
+                <div className="text-2xl font-black tracking-tight text-white">TeamForge</div>
+                <div className="text-[10px] font-bold tracking-[0.3em] text-violet-200">BUILD TOGETHER</div>
+              </div>
             </div>
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-600">Password</label>
-              <input required type="password" minLength={8} value={authForm.password}
-                onChange={e => setAuthForm({ ...authForm, password: e.target.value })}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"
-                placeholder="Enter your password"/>
+            <div className="mt-16 max-w-xl">
+              <div className="tf-auth-pill">
+                <Sparkles size={14} />
+                <span>YOUR TEAM. YOUR MOMENTUM.</span>
+              </div>
+              <h1 className="mt-7 text-5xl font-black leading-[1.08] tracking-tight text-white sm:text-6xl">
+                Big ideas.
+                <span className="tf-auth-gradient block">Better teamwork.</span>
+              </h1>
+              <p className="mt-6 max-w-md text-base leading-8 text-violet-100/75">
+                Bring your projects, people and progress together.
+                Make every great idea move forward with TeamForge.
+              </p>
             </div>
-            <button disabled={authLoading} className="tf-primary-button w-full rounded-xl bg-violet-600 py-3.5 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-60">
-              {authLoading ? "Please wait..." : authMode === "login" ? "Sign in" : "Create account"}
-            </button>
-          </form>
-          <p className="mt-6 text-center text-sm text-slate-500">
-            {authMode === "login" ? "New to TeamForge?" : "Already have an account?"}
-            <button onClick={() => {
-              setAuthMode(authMode === "login" ? "register" : "login");
-              setError("");
-            }} className="ml-1 font-semibold text-violet-600 hover:text-violet-800">
-              {authMode === "login" ? "Create an account" : "Sign in"}
-            </button>
-          </p>
+            <div className="tf-auth-feature-grid mt-12">
+              <div className="tf-auth-feature">
+                <div className="tf-auth-feature-icon"><Activity size={19}/></div>
+                <div>
+                  <div className="font-bold text-white">Stay in control</div>
+                  <div className="mt-1 text-xs text-violet-200/65">See your project progress</div>
+                </div>
+              </div>
+              <div className="tf-auth-feature">
+                <div className="tf-auth-feature-icon"><Users size={19}/></div>
+                <div>
+                  <div className="font-bold text-white">Work as one</div>
+                  <div className="mt-1 text-xs text-violet-200/65">Keep your team connected</div>
+                </div>
+              </div>
+              <div className="tf-auth-feature">
+                <div className="tf-auth-feature-icon"><Zap size={19}/></div>
+                <div>
+                  <div className="font-bold text-white">Move faster</div>
+                  <div className="mt-1 text-xs text-violet-200/65">Turn plans into progress</div>
+                </div>
+              </div>
+            </div>
+            <div className="mt-auto hidden pt-12 text-xs tracking-wide text-violet-200/50 sm:block">
+              FOCUS TOGETHER. ACHIEVE MORE.
+            </div>
+          </section>
+          <section className="tf-auth-form-wrap">
+            <div className="tf-auth-card">
+              <div className="mb-8">
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-100 text-violet-700">
+                  {authMode === "login" ? <ShieldCheck size={25}/> : <Sparkles size={25}/>}
+                </div>
+                <div className="text-xs font-bold uppercase tracking-[0.2em] text-violet-600">
+                  {authMode === "login" ? "Welcome back" : "Start something great"}
+                </div>
+                <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-900">
+                  {authMode === "login" ? "Sign in to TeamForge" : "Create your account"}
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                  {authMode === "login"
+                    ? "Your workspace is waiting. Let's pick up where you left off."
+                    : "Join your team and turn your next big idea into reality."}
+                </p>
+              </div>
+              <div className="mb-6 grid grid-cols-2 rounded-xl bg-slate-100 p-1">
+                <button type="button"
+                  onClick={() => {
+                    setAuthMode("login");
+                    setError("");
+                    setConfirmPassword("");
+                    setShowPassword(false);
+                    setShowConfirmPassword(false);
+                  }}
+                  className={`rounded-lg py-2.5 text-sm font-bold transition-all ${authMode === "login" ? "bg-white text-violet-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}>
+                  Sign in
+                </button>
+                <button type="button"
+                  onClick={() => {
+                    setAuthMode("register");
+                    setError("");
+                    setConfirmPassword("");
+                    setShowPassword(false);
+                    setShowConfirmPassword(false);
+                  }}
+                  className={`rounded-lg py-2.5 text-sm font-bold transition-all ${authMode === "register" ? "bg-white text-violet-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}>
+                  Create account
+                </button>
+              </div>
+              {error && (
+                <div role="alert" className="mb-5 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+                  <AlertCircle size={17} className="mt-0.5 shrink-0"/>
+                  <span>{error}</span>
+                </div>
+              )}
+              <form onSubmit={handleAuth} className="space-y-4">
+                {authMode === "register" && (
+                  <div className="tf-auth-field">
+                    <label htmlFor="auth-name">Full name</label>
+                    <input id="auth-name" required autoComplete="name"
+                      value={authForm.name}
+                      onChange={e => setAuthForm({ ...authForm, name: e.target.value })}
+                      placeholder="Your full name"/>
+                  </div>
+                )}
+                <div className="tf-auth-field">
+                  <label htmlFor="auth-email">Email address</label>
+                  <input id="auth-email" required type="email" autoComplete="email"
+                    value={authForm.email}
+                    onChange={e => setAuthForm({ ...authForm, email: e.target.value })}
+                    placeholder="you@example.com"/>
+                </div>
+                <div className="tf-auth-field">
+                  <label htmlFor="auth-password">Password</label>
+                  <div className="tf-auth-password">
+                    <input id="auth-password" required
+                      type={showPassword ? "text" : "password"}
+                      minLength={8}
+                      autoComplete={authMode === "login" ? "current-password" : "new-password"}
+                      value={authForm.password}
+                      onChange={e => setAuthForm({ ...authForm, password: e.target.value })}
+                      placeholder="Enter your password"/>
+                    <button type="button" aria-label={showPassword ? "Hide password" : "Show password"}
+                      aria-pressed={showPassword}
+                      onClick={() => setShowPassword(value => !value)}>
+                      {showPassword ? <EyeOff size={19}/> : <Eye size={19}/>}
+                    </button>
+                  </div>
+                </div>
+                {authMode === "register" && (
+                  <>
+                    <div className="tf-auth-strength">
+                      <div className="mb-2 flex items-center justify-between text-xs">
+                        <span className="font-semibold text-slate-600">Password strength</span>
+                        <span className="font-bold text-violet-700">{passwordStrengthLabel || "Enter a password"}</span>
+                      </div>
+                      <div className="flex gap-1.5">
+                        {[1, 2, 3, 4, 5].map(level => (
+                          <div key={level}
+                            className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${passwordStrengthScore >= level ? (passwordStrengthScore <= 2 ? "bg-rose-400" : passwordStrengthScore <= 3 ? "bg-amber-400" : "bg-emerald-500") : "bg-slate-200"}`}/>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="tf-auth-field">
+                      <label htmlFor="auth-confirm-password">Confirm password</label>
+                      <div className="tf-auth-password">
+                        <input id="auth-confirm-password" required
+                          type={showConfirmPassword ? "text" : "password"}
+                          autoComplete="new-password"
+                          value={confirmPassword}
+                          onChange={e => setConfirmPassword(e.target.value)}
+                          placeholder="Enter your password again"/>
+                        <button type="button"
+                          aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                          aria-pressed={showConfirmPassword}
+                          onClick={() => setShowConfirmPassword(value => !value)}>
+                          {showConfirmPassword ? <EyeOff size={19}/> : <Eye size={19}/>}
+                        </button>
+                      </div>
+                      {confirmPassword.length > 0 && (
+                        <div className={`mt-2 text-xs font-medium ${confirmPassword === authForm.password ? "text-emerald-600" : "text-rose-500"}`}>
+                          {confirmPassword === authForm.password ? "Passwords match" : "Passwords do not match"}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+                <button disabled={authLoading}
+                  className="tf-auth-submit group flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-60">
+                  {authLoading ? "Please wait..." : authMode === "login" ? "Sign in to your workspace" : "Create my account"}
+                  {!authLoading && <ArrowUpRight size={18} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"/>}
+                </button>
+              </form>
+              <div className="mt-6 flex items-center justify-center gap-2 text-xs text-slate-400">
+                <ShieldCheck size={14}/>
+                Your workspace is protected with secure authentication.
+              </div>
+            </div>
+            <div className="mt-6 text-center text-xs text-slate-400">
+              © {new Date().getFullYear()} TeamForge. Build something brilliant.
+            </div>
+          </section>
         </div>
       </div>
     );
@@ -1383,7 +1537,7 @@ function App() {
                       </label>
                     </div>
                     <div className="mt-6 flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
-                      <p className="text-xs text-slate-400">Member since {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "—"}</p>
+                      <p className="text-xs text-slate-400">Member since {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "—"}</p>
                       <button type="submit" disabled={profileSaving} className="rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-violet-700 disabled:opacity-50">{profileSaving ? "Saving..." : "Save changes"}</button>
                     </div>
                   </form>
@@ -1537,7 +1691,3 @@ function App() {
   );
 }
 export default App;
-
-
-
-
