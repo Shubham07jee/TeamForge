@@ -149,7 +149,133 @@ res.status(500).json({ success: false, message: "Login failed." });
 app.get("/api/auth/me", authenticate, (req, res) => {
 res.json({ success: true, user: req.user });
 });
-// Projects
+// Personal Profile
+app.get("/api/profile", authenticate, async (req, res) => {
+  try {
+    const profile = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        jobTitle: true,
+        phone: true,
+        location: true,
+        bio: true,
+        avatarUrl: true,
+        createdAt: true
+      }
+    });
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: "Profile not found."
+      });
+    }
+    res.json({ success: true, profile });
+  } catch (error) {
+    console.error("Profile retrieval error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Could not load your profile."
+    });
+  }
+});
+app.patch("/api/profile", authenticate, async (req, res) => {
+  try {
+    const body = req.body;
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid profile data."
+      });
+    }
+    const allowedFields = ["name", "jobTitle", "phone", "location", "bio"];
+    const unknownFields = Object.keys(body).filter(
+      field => !allowedFields.includes(field)
+    );
+    if (unknownFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "One or more profile fields cannot be updated."
+      });
+    }
+    const limits = {
+      name: 80,
+      jobTitle: 80,
+      phone: 30,
+      location: 100,
+      bio: 500
+    };
+    const updateData = {};
+    for (const field of allowedFields) {
+      if (!Object.prototype.hasOwnProperty.call(body, field)) continue;
+      const value = body[field];
+      if (field === "name") {
+        if (typeof value !== "string" || !value.trim()) {
+          return res.status(400).json({
+            success: false,
+            message: "Your name cannot be empty."
+          });
+        }
+        if (value.trim().length > limits.name) {
+          return res.status(400).json({
+            success: false,
+            message: "Your name must be 80 characters or fewer."
+          });
+        }
+        updateData.name = value.trim();
+        continue;
+      }
+      if (value !== null && typeof value !== "string") {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid value for " + field + "."
+        });
+      }
+      const cleaned = typeof value === "string" ? value.trim() : "";
+      if (cleaned.length > limits[field]) {
+        return res.status(400).json({
+          success: false,
+          message: field + " must be " + limits[field] + " characters or fewer."
+        });
+      }
+      updateData[field] = cleaned || null;
+    }
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No profile changes were provided."
+      });
+    }
+    const profile = await prisma.user.update({
+      where: { id: req.user.id },
+      data: updateData,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        jobTitle: true,
+        phone: true,
+        location: true,
+        bio: true,
+        avatarUrl: true,
+        createdAt: true
+      }
+    });
+    res.json({
+      success: true,
+      message: "Profile updated successfully.",
+      profile
+    });
+  } catch (error) {
+    console.error("Profile update error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Could not update your profile."
+    });
+  }
+});// Projects
 app.get("/api/projects", authenticate, async (req, res) => {
 const projects = await prisma.project.findMany({
 where: {
