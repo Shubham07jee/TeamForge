@@ -394,7 +394,7 @@ function App() {
                 className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"
                 placeholder="Enter your password"/>
             </div>
-            <button disabled={authLoading} className="w-full rounded-xl bg-violet-600 py-3.5 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-60">
+            <button disabled={authLoading} className="tf-primary-button w-full rounded-xl bg-violet-600 py-3.5 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-60">
               {authLoading ? "Please wait..." : authMode === "login" ? "Sign in" : "Create account"}
             </button>
           </form>
@@ -412,8 +412,8 @@ function App() {
     );
   }
   return (
-    <div className="min-h-screen bg-[#f7f8fc] text-slate-800">
-      <aside className="fixed inset-y-0 left-0 z-20 hidden w-[248px] flex-col border-r border-slate-200/80 bg-white px-5 py-6 lg:flex">
+    <div className="teamforge-app min-h-screen bg-[#f7f8fc] text-slate-800">
+      <aside className="tf-sidebar fixed inset-y-0 left-0 z-20 hidden w-[248px] flex-col border-r border-slate-200/80 bg-white px-5 py-6 lg:flex">
         <div className="mb-10 flex items-center gap-3 px-1">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 shadow-sm shadow-violet-100"><img src="/teamforge-logo.svg" alt="TeamForge" className="h-7 w-7 object-contain" /></div>
           <div><div className="text-lg font-bold tracking-tight text-slate-900">TeamForge</div><div className="text-[11px] font-medium text-slate-400">WORKSPACE</div></div>
@@ -462,7 +462,7 @@ function App() {
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
-      <aside className={"fixed inset-y-0 left-0 z-50 flex w-[270px] flex-col border-r border-slate-200 bg-white px-5 py-6 shadow-2xl transition-transform duration-300 ease-in-out lg:hidden " +
+      <aside className={"tf-mobile-sidebar fixed inset-y-0 left-0 z-50 flex w-[270px] flex-col border-r border-slate-200 bg-white px-5 py-6 shadow-2xl transition-transform duration-300 ease-in-out lg:hidden " +
         (mobileMenuOpen ? "translate-x-0" : "-translate-x-full")}>
         <div className="mb-9 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -511,7 +511,7 @@ function App() {
         </div>
       </aside>
       <main className="min-h-screen lg:ml-[248px]">
-        <header className="sticky top-0 z-10 flex h-[72px] items-center justify-between border-b border-slate-200/80 bg-white/90 px-5 backdrop-blur-xl md:px-9">
+        <header className="tf-topbar sticky top-0 z-10 flex h-[72px] items-center justify-between border-b border-slate-200/80 bg-white/90 px-5 backdrop-blur-xl md:px-9">
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -532,7 +532,7 @@ function App() {
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-violet-100 text-xs font-bold text-violet-700">{initials}</div>
           </div>
         </header>
-        <div className="mx-auto max-w-[1440px] px-5 py-8 md:px-9 md:py-10">{/* TEAMFORGE_NAV_V3 */}
+        <div className="tf-content mx-auto max-w-[1440px] px-5 py-8 md:px-9 md:py-10">{/* TEAMFORGE_NAV_V3 */}
           {active === "Overview" && (<div className="mb-5 flex flex-wrap items-end justify-between gap-4">
             <div>
               <div className="mb-2 text-sm font-medium text-violet-600">{new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</div>
@@ -547,7 +547,7 @@ function App() {
               setNewTask({ title: "", projectId: projects[0].id, priority: "MEDIUM" });
               setShowAdd(true);
               setError("");
-            }} className="flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-200 transition hover:bg-violet-700"><Plus size={17}/> Create task</button>
+            }} className="tf-primary-button flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-200 transition hover:bg-violet-700"><Plus size={17}/> Create task</button>
           </div>)}
           {error && <div className="mb-5 flex items-center justify-between rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-700"><span>{error}</span><button onClick={() => setError("")}><X size={16}/></button></div>}
           {notice && <div className="mb-5 flex items-center justify-between rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"><span>{notice}</span><button onClick={() => setNotice("")}><X size={16}/></button></div>}
@@ -561,7 +561,7 @@ function App() {
               { label: "Team members", value: teamProjects.reduce((total, project) => total + (project.members?.length || 0), 0), change: "Across your projects", icon: Users, color: "bg-amber-50 text-amber-600" }
             ].map(stat => {
               const Icon = stat.icon;
-              return <div key={stat.label} className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-100/70">
+              return <div key={stat.label} className="tf-stat-card rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-100/70">
                 <div className="mb-4 flex items-center justify-between"><span className="text-sm font-medium text-slate-500">{stat.label}</span><span className={"rounded-xl p-2.5 " + stat.color}><Icon size={19}/></span></div>
                 <div className="text-3xl font-bold tracking-tight text-slate-900">{stat.value}</div>
                 <div className="mt-2 text-xs font-medium text-slate-400">{stat.change}</div>
@@ -620,7 +620,7 @@ function App() {
                     setShowProjectForm(true);
                     setError("");
                   }}
-                  className="flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700"
+                  className="tf-primary-button flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700"
                 >
                   <Plus size={16}/> New project
                 </button>
@@ -1058,6 +1058,7 @@ function App() {
   );
 }
 export default App;
+
 
 
 
