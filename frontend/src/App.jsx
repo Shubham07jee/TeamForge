@@ -6,10 +6,11 @@ import {
 } from "lucide-react";
 const API = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "");
 async function api(path, options = {}, token = null) {
+  const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
   const response = await fetch(API + path, {
     ...options,
     headers: {
-      "Content-Type": "application/json",
+      ...(!isFormData ? { "Content-Type": "application/json" } : {}),
       ...(token ? { Authorization: "Bearer " + token } : {}),
       ...(options.headers || {})
     }
@@ -52,6 +53,11 @@ function App() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [active, setActive] = useState("Overview");
+  const [profile, setProfile] = useState(null);
+  const [profileForm, setProfileForm] = useState({ name: "", jobTitle: "", phone: "", location: "", bio: "" });
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [avatarLoading, setAvatarLoading] = useState(false);
   const [projects, setProjects] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [teamProjects, setTeamProjects] = useState([]);
@@ -172,6 +178,108 @@ function App() {
     setTasks([]);
     setError("");
     setNotice("");
+  }
+  function syncProfileUser(data) {
+    const updated = { ...(user || {}), name: data.name, email: data.email, avatarUrl: data.avatarUrl };
+    sessionStorage.setItem("teamforge_user", JSON.stringify(updated));
+    setUser(updated);
+  }
+  async function loadProfile() {
+    setProfileLoading(true);
+    try {
+      const result = await api("/profile", {}, token);
+      const data = result.data;
+      setProfile(data);
+      setProfileForm({
+        name: data.name || "",
+        jobTitle: data.jobTitle || "",
+        phone: data.phone || "",
+        location: data.location || "",
+        bio: data.bio || ""
+      });
+      syncProfileUser(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setProfileLoading(false);
+    }
+  }
+  useEffect(() => {
+    if (active === "Profile" && token) {
+      Promise.resolve().then(() => loadProfile());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, token]);
+  async function saveProfile(event) {
+    event.preventDefault();
+    setProfileSaving(true);
+    setError("");
+    setNotice("");
+    try {
+      const result = await api("/profile", {
+        method: "PATCH",
+        body: JSON.stringify(profileForm)
+      }, token);
+      setProfile(result.data);
+      setProfileForm({
+        name: result.data.name || "",
+        jobTitle: result.data.jobTitle || "",
+        phone: result.data.phone || "",
+        location: result.data.location || "",
+        bio: result.data.bio || ""
+      });
+      syncProfileUser(result.data);
+      setNotice("Your profile has been updated.");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setProfileSaving(false);
+    }
+  }
+  async function uploadAvatar(event) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setError("Choose a JPG, PNG, or WebP image.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image must be 5 MB or smaller.");
+      return;
+    }
+    const formData = new FormData();
+    formData.append("avatar", file);
+    setAvatarLoading(true);
+    setError("");
+    try {
+      const result = await api("/profile/avatar", {
+        method: "POST",
+        body: formData
+      }, token);
+      setProfile(result.data);
+      syncProfileUser(result.data);
+      setNotice("Profile photo updated.");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setAvatarLoading(false);
+    }
+  }
+  async function removeAvatar() {
+    if (!window.confirm("Remove your profile photo?")) return;
+    setAvatarLoading(true);
+    setError("");
+    try {
+      const result = await api("/profile/avatar", { method: "DELETE" }, token);
+      setProfile(result.data);
+      syncProfileUser(result.data);
+      setNotice("Profile photo removed.");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setAvatarLoading(false);
+    }
   }
   const selectedTeamProject =
     teamProjects.find(project => project.id === selectedTeamProjectId) ||
@@ -694,8 +802,8 @@ function App() {
                   <div className="absolute right-0 top-12 z-50 w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/70">
                     <div className="border-b border-slate-100 bg-gradient-to-br from-violet-50/80 to-pink-50/60 px-4 py-4">
                       <div className="flex items-center gap-3">
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-100 to-pink-100 text-xs font-bold text-violet-700">
-                          {initials}
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-violet-100 to-pink-100 text-xs font-bold text-violet-700">
+                          {(profile?.avatarUrl || user?.avatarUrl) ? <img src={profile?.avatarUrl || user?.avatarUrl} alt="Profile" className="h-full w-full object-cover"/> : initials}
                         </span>
                         <span className="min-w-0">
                           <span className="block truncate text-sm font-bold text-slate-800">{user?.name || "TeamForge member"}</span>
@@ -704,6 +812,18 @@ function App() {
                       </div>
                     </div>
                     <div className="p-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActive("Profile");
+                          setOpenMenu(null);
+                          setError("");
+                          setNotice("");
+                        }}
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-violet-700 transition hover:bg-violet-50"
+                      >
+                        <Users size={17}/> My Profile
+                      </button>
                       <button
                         type="button"
                         onClick={() => {
@@ -1108,6 +1228,85 @@ function App() {
                     Only the project owner can manage members. New users must register before they can be added.
                   </p>
                 </form>
+              )}
+            </section>
+          )}
+          {active === "Profile" && (
+            <section className="space-y-6">
+              <div>
+                <p className="text-sm font-medium text-violet-600">Account</p>
+                <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">My Profile</h1>
+                <p className="mt-2 text-sm text-slate-500">Manage your personal details and profile photo.</p>
+              </div>
+              {profileLoading ? (
+                <div className="rounded-2xl border border-slate-200 bg-white p-8 text-sm text-slate-500">Loading your profile...</div>
+              ) : profile && (
+                <>
+                  <div className="flex flex-col gap-5 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm sm:flex-row sm:items-center">
+                    <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-violet-100 to-pink-100 text-2xl font-bold text-violet-700 ring-4 ring-violet-50">
+                      {profile.avatarUrl ? <img src={profile.avatarUrl} alt="Your profile" className="h-full w-full object-cover"/> : initials}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h2 className="text-xl font-bold text-slate-900">{profile.name}</h2>
+                      <p className="mt-1 text-sm text-slate-500">{profile.jobTitle || "Add your job title"}</p>
+                      <p className="mt-1 text-xs text-slate-400">{profile.email}</p>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <label className="inline-flex cursor-pointer items-center rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700">
+                          {avatarLoading ? "Please wait..." : "Change photo"}
+                          <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" disabled={avatarLoading} onChange={uploadAvatar}/>
+                        </label>
+                        {profile.avatarUrl && (
+                          <button type="button" disabled={avatarLoading} onClick={removeAvatar} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-rose-600 hover:bg-rose-50 disabled:opacity-50">Remove photo</button>
+                        )}
+                      </div>
+                      <p className="mt-2 text-xs text-slate-400">JPG, PNG or WebP · Maximum 5 MB</p>
+                    </div>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                      <p className="text-xs font-medium text-slate-500">Projects</p>
+                      <p className="mt-2 text-2xl font-bold text-slate-900">{projects.length}</p>
+                    </div>
+                    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                      <p className="text-xs font-medium text-slate-500">Team workspaces</p>
+                      <p className="mt-2 text-2xl font-bold text-slate-900">{teamProjects.length}</p>
+                    </div>
+                    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                      <p className="text-xs font-medium text-slate-500">Tasks</p>
+                      <p className="mt-2 text-2xl font-bold text-slate-900">{tasks.length}</p>
+                    </div>
+                  </div>
+                  <form onSubmit={saveProfile} className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+                    <div className="mb-6">
+                      <h2 className="text-lg font-bold text-slate-900">Personal information</h2>
+                      <p className="mt-1 text-sm text-slate-500">Your email address is kept read-only.</p>
+                    </div>
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      <label className="block text-sm font-medium text-slate-600">Full name
+                        <input required maxLength={80} value={profileForm.name} onChange={e => setProfileForm({ ...profileForm, name: e.target.value })} className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"/>
+                      </label>
+                      <label className="block text-sm font-medium text-slate-600">Email address
+                        <input readOnly value={profile.email || ""} className="mt-2 w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500"/>
+                      </label>
+                      <label className="block text-sm font-medium text-slate-600">Job title
+                        <input maxLength={80} value={profileForm.jobTitle} onChange={e => setProfileForm({ ...profileForm, jobTitle: e.target.value })} placeholder="e.g. Software Engineer" className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"/>
+                      </label>
+                      <label className="block text-sm font-medium text-slate-600">Phone
+                        <input maxLength={30} value={profileForm.phone} onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })} placeholder="Your phone number" className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"/>
+                      </label>
+                      <label className="block text-sm font-medium text-slate-600 sm:col-span-2">Location
+                        <input maxLength={100} value={profileForm.location} onChange={e => setProfileForm({ ...profileForm, location: e.target.value })} placeholder="City, Country" className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"/>
+                      </label>
+                      <label className="block text-sm font-medium text-slate-600 sm:col-span-2">Bio
+                        <textarea rows={4} maxLength={500} value={profileForm.bio} onChange={e => setProfileForm({ ...profileForm, bio: e.target.value })} placeholder="Tell your team a little about yourself..." className="mt-2 w-full resize-y rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"/>
+                      </label>
+                    </div>
+                    <div className="mt-6 flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="text-xs text-slate-400">Member since {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "—"}</p>
+                      <button type="submit" disabled={profileSaving} className="rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-violet-700 disabled:opacity-50">{profileSaving ? "Saving..." : "Save changes"}</button>
+                    </div>
+                  </form>
+                </>
               )}
             </section>
           )}
