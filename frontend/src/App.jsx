@@ -188,7 +188,7 @@ function App() {
     setProfileLoading(true);
     try {
       const result = await api("/profile", {}, token);
-      const data = result.data;
+      const data = result.profile;
       setProfile(data);
       setProfileForm({
         name: data.name || "",
@@ -220,15 +220,15 @@ function App() {
         method: "PATCH",
         body: JSON.stringify(profileForm)
       }, token);
-      setProfile(result.data);
+      setProfile(result.profile);
       setProfileForm({
-        name: result.data.name || "",
-        jobTitle: result.data.jobTitle || "",
-        phone: result.data.phone || "",
-        location: result.data.location || "",
-        bio: result.data.bio || ""
+        name: result.profile.name || "",
+        jobTitle: result.profile.jobTitle || "",
+        phone: result.profile.phone || "",
+        location: result.profile.location || "",
+        bio: result.profile.bio || ""
       });
-      syncProfileUser(result.data);
+      syncProfileUser(result.profile);
       setNotice("Your profile has been updated.");
     } catch (err) {
       setError(err.message);
@@ -257,8 +257,8 @@ function App() {
         method: "POST",
         body: formData
       }, token);
-      setProfile(result.data);
-      syncProfileUser(result.data);
+      setProfile(result.profile);
+      syncProfileUser(result.profile);
       setNotice("Profile photo updated.");
     } catch (err) {
       setError(err.message);
@@ -272,8 +272,8 @@ function App() {
     setError("");
     try {
       const result = await api("/profile/avatar", { method: "DELETE" }, token);
-      setProfile(result.data);
-      syncProfileUser(result.data);
+      setProfile(result.profile);
+      syncProfileUser(result.profile);
       setNotice("Profile photo removed.");
     } catch (err) {
       setError(err.message);
