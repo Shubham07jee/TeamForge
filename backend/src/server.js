@@ -5,12 +5,38 @@ import helmet from "helmet";
 import morgan from "morgan";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import multer from "multer";
+import { fileTypeFromBuffer } from "file-type";
+import { v2 as cloudinary } from "cloudinary";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 const adapter = new PrismaPg({
 connectionString: process.env.DATABASE_URL
 });
 const prisma = new PrismaClient({ adapter });
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+const avatarUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+    files: 1
+  },
+  fileFilter: (req, file, callback) => {
+    const allowedMimeTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp"
+    ];
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      return callback(new Error("Only JPG, PNG, and WebP images are allowed."));
+    }
+    callback(null, true);
+  }
+});
 const app = express();
 app.use(helmet());
 const allowedOrigins = [
@@ -275,7 +301,157 @@ app.patch("/api/profile", authenticate, async (req, res) => {
       message: "Could not update your profile."
     });
   }
-});// Projects
+});
+/* Profile avatar upload */
+app.post(
+  "/api/profile/avatar",
+  authenticate,
+  (req, res, next) => {
+    avatarUpload.single("avatar")(req, res, error => {
+      if (!error) return next();
+      if (error.code === "LIMIT_FILE_SIZE") {
+        return res.status(400).json({
+          success: false,
+          message: "Image must be 5 MB or smaller."
+        });
+      }
+      return res.status(400).json({
+        success: false,
+        message: error.message || "Invalid image upload."
+      });
+    });
+  },
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: "Please select an image to upload."
+        });
+      }
+      const detectedType = await fileTypeFromBuffer(req.file.buffer);
+      const allowedExtensions = ["jpg", "png", "webp"];
+      if (
+        !detectedType ||
+        !allowedExtensions.includes(detectedType.ext) ||
+        !["image/jpeg", "image/png", "image/webp"].includes(detectedType.mime)
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "The selected file is not a supported image."
+        });
+      }
+      const requiredEnv = [
+        "CLOUDINARY_CLOUD_NAME",
+        "CLOUDINARY_API_KEY",
+        "CLOUDINARY_API_SECRET"
+      ];
+      if (requiredEnv.some(key => !process.env[key])) {
+        return res.status(503).json({
+          success: false,
+          message: "Avatar uploads are not configured on the server."
+        });
+      }
+      const uploaded = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder: "teamforge/avatars",
+            public_id: req.user.id,
+            overwrite: true,
+            invalidate: true,
+            resource_type: "image",
+            allowed_formats: ["jpg", "jpeg", "png", "webp"],
+            transformation: [
+              { width: 512, height: 512, crop: "limit" }
+            ]
+          },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+          }
+        );
+        stream.end(req.file.buffer);
+      });
+      const profile = await prisma.user.update({
+        where: { id: req.user.id },
+        data: { avatarUrl: uploaded.secure_url },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          jobTitle: true,
+          phone: true,
+          location: true,
+          bio: true,
+          avatarUrl: true,
+          createdAt: true
+        }
+      });
+      return res.json({
+        success: true,
+        message: "Profile picture updated successfully.",
+        profile
+      });
+    } catch (error) {
+      console.error("Avatar upload error:", error.message || error);
+      return res.status(500).json({
+        success: false,
+        message: "Could not upload your profile picture."
+      });
+    }
+  }
+);
+/* Remove profile avatar */
+app.delete("/api/profile/avatar", authenticate, async (req, res) => {
+  try {
+    const requiredEnv = [
+      "CLOUDINARY_CLOUD_NAME",
+      "CLOUDINARY_API_KEY",
+      "CLOUDINARY_API_SECRET"
+    ];
+    if (requiredEnv.some(key => !process.env[key])) {
+      return res.status(503).json({
+        success: false,
+        message: "Avatar removal is not configured on the server."
+      });
+    }
+    const publicId = "teamforge/avatars/" + req.user.id;
+    const deletion = await cloudinary.uploader.destroy(publicId, {
+      resource_type: "image",
+      invalidate: true
+    });
+    if (!["ok", "not found"].includes(deletion.result)) {
+      throw new Error("Cloudinary did not confirm avatar deletion.");
+    }
+    const profile = await prisma.user.update({
+      where: { id: req.user.id },
+      data: { avatarUrl: null },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        jobTitle: true,
+        phone: true,
+        location: true,
+        bio: true,
+        avatarUrl: true,
+        createdAt: true
+      }
+    });
+    return res.json({
+      success: true,
+      message: "Profile picture removed.",
+      profile
+    });
+  } catch (error) {
+    console.error("Avatar removal error:", error.message || error);
+    return res.status(500).json({
+      success: false,
+      message: "Could not remove your profile picture."
+    });
+  }
+});
+// Projects
 app.get("/api/projects", authenticate, async (req, res) => {
 const projects = await prisma.project.findMany({
 where: {
