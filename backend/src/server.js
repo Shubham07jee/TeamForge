@@ -253,11 +253,16 @@ message: "Task not found."
 });
 }
 const data = {};
-const { title, description, status, priority } = req.body;
+const { title, description, status, priority, dueDate } = req.body;
 if (typeof title === "string" && title.trim()) data.title = title.trim();
 if (typeof description === "string") data.description = description.trim();
 if (["TODO", "IN_PROGRESS", "DONE"].includes(status)) data.status = status;
 if (["LOW", "MEDIUM", "HIGH"].includes(priority)) data.priority = priority;
+  if (dueDate === null || dueDate === "") {
+    data.dueDate = null;
+  } else if (typeof dueDate === "string" && !Number.isNaN(Date.parse(dueDate))) {
+    data.dueDate = new Date(dueDate);
+  }
 const task = await prisma.task.update({
 where: { id: existing.id },
 data

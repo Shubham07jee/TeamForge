@@ -58,6 +58,8 @@ function App() {
   const [filter, setFilter] = useState("All");
   const [search, setSearch] = useState("");
   const [showAdd, setShowAdd] = useState(false);
+  const [taskView, setTaskView] = useState("list");
+  const [editingTask, setEditingTask] = useState(null);
   const [showProjectForm, setShowProjectForm] = useState(false);
   const [projectSaving, setProjectSaving] = useState(false);
   const [newProject, setNewProject] = useState({
@@ -66,8 +68,10 @@ function App() {
   });
   const [newTask, setNewTask] = useState({
     title: "",
+    description: "",
     projectId: "",
-    priority: "MEDIUM"
+    priority: "MEDIUM",
+    dueDate: ""
   });
   const navItems = [
     { label: "Overview", icon: LayoutDashboard },
@@ -154,12 +158,20 @@ function App() {
         method: "POST",
         body: JSON.stringify({
           title: newTask.title.trim(),
+          description: newTask.description.trim(),
           projectId: newTask.projectId,
-          priority: newTask.priority
+          priority: newTask.priority,
+          dueDate: newTask.dueDate || null
         })
       }, token);
       setTasks(previous => [result.data, ...previous]);
-      setNewTask({ title: "", projectId: "", priority: "MEDIUM" });
+      setNewTask({
+        title: "",
+        description: "",
+        projectId: "",
+        priority: "MEDIUM",
+        dueDate: ""
+      });
       setShowAdd(false);
       setError("");
       setNotice("Task created successfully.");
@@ -208,6 +220,58 @@ function App() {
         item.id === task.id ? result.data : item
       ));
       setError("");
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+  async function updateTask(taskId, changes) {
+    try {
+      const result = await api("/tasks/" + taskId, {
+        method: "PATCH",
+        body: JSON.stringify(changes)
+      }, token);
+      setTasks(previous => previous.map(task =>
+        task.id === taskId ? result.data : task
+      ));
+      setError("");
+      setNotice("Task updated successfully.");
+      return true;
+    } catch (err) {
+      setError(err.message);
+      return false;
+    }
+  }
+  function openTaskEditor(task) {
+    setEditingTask({
+      ...task,
+      description: task.description || "",
+      dueDate: task.dueDate ? String(task.dueDate).slice(0, 10) : ""
+    });
+  }
+  async function saveTaskEdit(event) {
+    event.preventDefault();
+    if (!editingTask?.title?.trim()) {
+      setError("Enter a task name.");
+      return;
+    }
+    const saved = await updateTask(editingTask.id, {
+      title: editingTask.title.trim(),
+      description: editingTask.description || "",
+      status: editingTask.status,
+      priority: editingTask.priority,
+      dueDate: editingTask.dueDate || null
+    });
+    if (saved) setEditingTask(null);
+  }
+  async function removeTask(task) {
+    if (!window.confirm('Delete "' + task.title + '"? This cannot be undone.')) {
+      return;
+    }
+    try {
+      await api("/tasks/" + task.id, { method: "DELETE" }, token);
+      setTasks(previous => previous.filter(item => item.id !== task.id));
+      setError("");
+      setNotice("Task deleted successfully.");
     } catch (err) {
       setError(err.message);
     }
@@ -449,24 +513,73 @@ function App() {
                 {["All", "Todo", "In progress", "Done"].map(value => <button key={value} onClick={() => setFilter(value)} className={"rounded-lg px-3 py-2 text-xs font-medium transition " + (filter === value ? "bg-white text-violet-700 shadow-sm" : "text-slate-500")}>{value}</button>)}
               </div>
             </div>
-            <div className="divide-y divide-slate-100">
-              {visibleTasks.map(task => {
-                const status = statusLabel(task.status);
-                const priority = priorityLabel(task.priority);
-                return <div key={task.id} className="flex flex-wrap items-center gap-3 px-5 py-4 transition hover:bg-slate-50/70 md:px-6">
-                  <button onClick={() => toggleTask(task)} title="Toggle completion" className={"flex h-5 w-5 shrink-0 items-center justify-center rounded-md border " + (task.status === "DONE" ? "border-emerald-500 bg-emerald-500 text-white" : "border-slate-300 text-transparent hover:border-violet-500")}><Check size={13}/></button>
-                  <div className="min-w-[160px] flex-1">
-                    <div className={"text-sm font-medium " + (task.status === "DONE" ? "text-slate-400 line-through" : "text-slate-800")}>{task.title}</div>
-                    <div className="mt-1 text-xs text-slate-400">{task.project?.name || "Project"}</div>
-                  </div>
-                  <span className={"rounded-md px-2.5 py-1 text-[11px] font-semibold " + (priority === "High" ? "bg-rose-50 text-rose-600" : priority === "Medium" ? "bg-amber-50 text-amber-700" : "bg-slate-100 text-slate-500")}>{priority}</span>
-                  <span className="flex w-24 items-center gap-1.5 text-xs text-slate-400"><CalendarDays size={13}/>{formatDate(task.dueDate)}</span>
-                  <span className={"hidden rounded-full px-2.5 py-1 text-[11px] font-medium sm:inline-flex " + (status === "Done" ? "bg-emerald-50 text-emerald-700" : status === "In progress" ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-500")}>{status}</span>
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-violet-100 text-[10px] font-bold text-violet-700">{initials}</span>
-                </div>;
-              })}
-              {visibleTasks.length === 0 && <div className="p-10 text-center text-sm text-slate-400">{loading ? "Loading tasks..." : "No tasks found. Create a task to get started."}</div>}
+            <div className="flex items-center gap-2">
+              <div className="flex rounded-xl bg-slate-100 p-1">
+                <button onClick={() => setTaskView("list")} className={"rounded-lg px-3 py-2 text-xs font-medium " + (taskView === "list" ? "bg-white text-violet-700 shadow-sm" : "text-slate-500")}>List</button>
+                <button onClick={() => setTaskView("kanban")} className={"rounded-lg px-3 py-2 text-xs font-medium " + (taskView === "kanban" ? "bg-white text-violet-700 shadow-sm" : "text-slate-500")}>Kanban</button>
+              </div>
             </div>
+            {taskView === "list" ? (
+              <div className="divide-y divide-slate-100">
+                {visibleTasks.map(task => {
+                  const priority = priorityLabel(task.priority);
+                  return <div key={task.id} className="flex flex-wrap items-center gap-3 px-5 py-4 transition hover:bg-slate-50/70 md:px-6">
+                    <button onClick={() => toggleTask(task)} title="Toggle completion" className={"flex h-5 w-5 shrink-0 items-center justify-center rounded-md border " + (task.status === "DONE" ? "border-emerald-500 bg-emerald-500 text-white" : "border-slate-300 text-transparent hover:border-violet-500")}><Check size={13}/></button>
+                    <div className="min-w-[160px] flex-1">
+                      <div className={"text-sm font-medium " + (task.status === "DONE" ? "text-slate-400 line-through" : "text-slate-800")}>{task.title}</div>
+                      <div className="mt-1 text-xs text-slate-400">{task.project?.name || "Project"}</div>
+                      {task.description && <p className="mt-1 max-w-xl text-xs text-slate-500">{task.description}</p>}
+                    </div>
+                    <span className={"rounded-md px-2.5 py-1 text-[11px] font-semibold " + (priority === "High" ? "bg-rose-50 text-rose-600" : priority === "Medium" ? "bg-amber-50 text-amber-700" : "bg-slate-100 text-slate-500")}>{priority}</span>
+                    <span className="flex w-24 items-center gap-1.5 text-xs text-slate-400"><CalendarDays size={13}/>{formatDate(task.dueDate)}</span>
+                    <select aria-label="Task status" value={task.status} onChange={e => updateTask(task.id, { status: e.target.value })} className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs">
+                      <option value="TODO">Todo</option>
+                      <option value="IN_PROGRESS">In progress</option>
+                      <option value="DONE">Done</option>
+                    </select>
+                    <button onClick={() => openTaskEditor(task)} className="rounded-lg px-2 py-1.5 text-xs font-semibold text-violet-600 hover:bg-violet-50">Edit</button>
+                    <button onClick={() => removeTask(task)} className="rounded-lg px-2 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50">Delete</button>
+                  </div>;
+                })}
+                {visibleTasks.length === 0 && <div className="p-10 text-center text-sm text-slate-400">{loading ? "Loading tasks..." : "No tasks found. Create a task to get started."}</div>}
+              </div>
+            ) : (
+              <div className="grid gap-4 p-4 md:grid-cols-3">
+                {[
+                  { status: "TODO", label: "Todo" },
+                  { status: "IN_PROGRESS", label: "In progress" },
+                  { status: "DONE", label: "Done" }
+                ].map(column => {
+                  const columnTasks = visibleTasks.filter(task => task.status === column.status);
+                  return <div key={column.status} className="min-w-0 rounded-xl bg-slate-50 p-3">
+                    <div className="mb-3 flex items-center justify-between">
+                      <h3 className="text-sm font-bold text-slate-700">{column.label}</h3>
+                      <span className="rounded-full bg-white px-2 py-1 text-xs text-slate-500">{columnTasks.length}</span>
+                    </div>
+                    <div className="space-y-3">
+                      {columnTasks.map(task => <article key={task.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                        <div className="flex items-start justify-between gap-2">
+                          <h4 className="text-sm font-semibold text-slate-800">{task.title}</h4>
+                          <span className={"rounded-md px-2 py-1 text-[10px] font-semibold " + (task.priority === "HIGH" ? "bg-rose-50 text-rose-600" : task.priority === "MEDIUM" ? "bg-amber-50 text-amber-700" : "bg-slate-100 text-slate-500")}>{priorityLabel(task.priority)}</span>
+                        </div>
+                        {task.description && <p className="mt-2 text-xs leading-relaxed text-slate-500">{task.description}</p>}
+                        <p className="mt-2 text-xs text-slate-400">{task.project?.name || "Project"} · {formatDate(task.dueDate)}</p>
+                        <select aria-label="Move task" value={task.status} onChange={e => updateTask(task.id, { status: e.target.value })} className="mt-3 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs">
+                          <option value="TODO">Todo</option>
+                          <option value="IN_PROGRESS">In progress</option>
+                          <option value="DONE">Done</option>
+                        </select>
+                        <div className="mt-3 flex justify-end gap-2">
+                          <button onClick={() => openTaskEditor(task)} className="rounded-lg px-2 py-1.5 text-xs font-semibold text-violet-600 hover:bg-violet-50">Edit</button>
+                          <button onClick={() => removeTask(task)} className="rounded-lg px-2 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50">Delete</button>
+                        </div>
+                      </article>)}
+                      {columnTasks.length === 0 && <p className="rounded-lg border border-dashed border-slate-200 p-4 text-center text-xs text-slate-400">No tasks</p>}
+                    </div>
+                  </div>;
+                })}
+              </div>
+            )}
             <div className="flex items-center justify-between border-t border-slate-100 px-5 py-4 md:px-6">
               <span className="text-xs text-slate-400">Showing {visibleTasks.length} of {tasks.length} tasks</span>
               <button onClick={() => loadWorkspace()} className="text-xs font-semibold text-violet-600 hover:text-violet-800">Refresh data <ArrowUpRight className="ml-1 inline" size={13}/></button>
@@ -535,6 +648,21 @@ function App() {
           <div className="mb-5 flex items-center justify-between"><h3 className="text-lg font-bold text-slate-900">Create a task</h3><button type="button" onClick={() => setShowAdd(false)} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100"><X size={18}/></button></div>
           <label className="mb-2 block text-sm font-medium text-slate-600">Task name</label>
           <input autoFocus required value={newTask.title} onChange={e => setNewTask({ ...newTask, title: e.target.value })} placeholder="What needs to be done?" className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"/>
+          <label className="mb-2 mt-4 block text-sm font-medium text-slate-600">Description</label>
+          <textarea
+            rows={3}
+            value={newTask.description}
+            onChange={e => setNewTask({ ...newTask, description: e.target.value })}
+            placeholder="Add task details..."
+            className="w-full resize-none rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"
+          />
+          <label className="mb-2 mt-4 block text-sm font-medium text-slate-600">Due date</label>
+          <input
+            type="date"
+            value={newTask.dueDate}
+            onChange={e => setNewTask({ ...newTask, dueDate: e.target.value })}
+            className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"
+          />
           <label className="mb-2 mt-4 block text-sm font-medium text-slate-600">Project</label>
           <select required value={newTask.projectId} onChange={e => setNewTask({ ...newTask, projectId: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-violet-500">
             {projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}
@@ -546,6 +674,38 @@ function App() {
           <div className="mt-6 flex justify-end gap-2">
             <button type="button" onClick={() => setShowAdd(false)} className="rounded-xl px-4 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-100">Cancel</button>
             <button type="submit" className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700">Create task</button>
+          </div>
+        </form>
+      </div>}
+      {editingTask && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm">
+        <form onSubmit={saveTaskEdit} className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
+          <div className="mb-5 flex items-center justify-between">
+            <h3 className="text-lg font-bold text-slate-900">Edit task</h3>
+            <button type="button" onClick={() => setEditingTask(null)} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100"><X size={18}/></button>
+          </div>
+          <label className="mb-2 block text-sm font-medium text-slate-600">Task name</label>
+          <input required value={editingTask.title} onChange={e => setEditingTask({ ...editingTask, title: e.target.value })} className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"/>
+          <label className="mb-2 mt-4 block text-sm font-medium text-slate-600">Description</label>
+          <textarea rows={3} value={editingTask.description} onChange={e => setEditingTask({ ...editingTask, description: e.target.value })} className="w-full resize-none rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-500"/>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-600">Priority</label>
+              <select value={editingTask.priority} onChange={e => setEditingTask({ ...editingTask, priority: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm">
+                <option value="LOW">Low</option><option value="MEDIUM">Medium</option><option value="HIGH">High</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-600">Status</label>
+              <select value={editingTask.status} onChange={e => setEditingTask({ ...editingTask, status: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm">
+                <option value="TODO">Todo</option><option value="IN_PROGRESS">In progress</option><option value="DONE">Done</option>
+              </select>
+            </div>
+          </div>
+          <label className="mb-2 mt-4 block text-sm font-medium text-slate-600">Due date</label>
+          <input type="date" value={editingTask.dueDate} onChange={e => setEditingTask({ ...editingTask, dueDate: e.target.value })} className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm"/>
+          <div className="mt-6 flex justify-end gap-2">
+            <button type="button" onClick={() => setEditingTask(null)} className="rounded-xl px-4 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-100">Cancel</button>
+            <button type="submit" className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700">Save changes</button>
           </div>
         </form>
       </div>}
