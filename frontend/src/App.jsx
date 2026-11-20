@@ -1,6 +1,6 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  Activity, ArrowUpRight, Bell, CalendarDays, Check, CheckSquare,
+  Activity, ArrowUpRight, Bell, CalendarDays, Menu, Check, CheckSquare,
   CircleCheck, FolderKanban, LayoutDashboard,
   LogOut, Plus, Search, Settings, Users, Zap, X
 } from "lucide-react";
@@ -519,7 +519,7 @@ function App() {
               aria-label="Open navigation menu"
               className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 lg:hidden"
             >
-              <span className="text-xl leading-none">â˜°</span>
+              <Menu size={21}/>
             </button>
             <div className="text-sm text-slate-400">Workspace <span className="mx-2">/</span><span className="font-semibold text-slate-800">{active}</span></div>
           </div>
@@ -692,7 +692,7 @@ function App() {
                           <span className={"rounded-md px-2 py-1 text-[10px] font-semibold " + (task.priority === "HIGH" ? "bg-rose-50 text-rose-600" : task.priority === "MEDIUM" ? "bg-amber-50 text-amber-700" : "bg-slate-100 text-slate-500")}>{priorityLabel(task.priority)}</span>
                         </div>
                         {task.description && <p className="mt-2 text-xs leading-relaxed text-slate-500">{task.description}</p>}
-                        <p className="mt-2 text-xs text-slate-400">{task.project?.name || "Project"} Ã‚Â· {formatDate(task.dueDate)}</p>
+                        <p className="mt-2 text-xs text-slate-400">{task.project?.name || "Project"}{"\u00B7"}{formatDate(task.dueDate)}</p>
                         <select aria-label="Move task" value={task.status} onChange={e => updateTask(task.id, { status: e.target.value })} className="mt-3 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs">
                           <option value="TODO">Todo</option>
                           <option value="IN_PROGRESS">In progress</option>
