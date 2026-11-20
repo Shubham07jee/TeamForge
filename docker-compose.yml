@@ -1,0 +1,20 @@
+﻿services:
+  postgres:
+    image: postgres:17
+    container_name: teamforge-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: teamforge_user
+      POSTGRES_PASSWORD: teamforge_local_2026
+      POSTGRES_DB: teamforge_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - teamforge_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U teamforge_user -d teamforge_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  teamforge_data:
