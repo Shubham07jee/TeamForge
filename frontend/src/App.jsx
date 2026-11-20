@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Activity, ArrowUpRight, Bell, CalendarDays, Menu, Check, CheckSquare,
+  Activity, ArrowUpRight, Bell, CalendarDays, Menu, ChevronDown, AlertCircle, Check, CheckSquare,
   CircleCheck, FolderKanban, LayoutDashboard,
   LogOut, Plus, Search, Settings, Users, Zap, X
 } from "lucide-react";
@@ -78,6 +78,25 @@ function App() {
     dueDate: ""
   });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [openMenu, setOpenMenu] = useState(null);
+  const headerActionsRef = useRef(null);
+  useEffect(() => {
+    if (!openMenu) return;
+    function handleOutsideClick(event) {
+      if (!headerActionsRef.current?.contains(event.target)) {
+        setOpenMenu(null);
+      }
+    }
+    function handleEscape(event) {
+      if (event.key === "Escape") setOpenMenu(null);
+    }
+    document.addEventListener("pointerdown", handleOutsideClick);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("pointerdown", handleOutsideClick);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [openMenu]);
   const navItems = [
     { label: "Overview", icon: LayoutDashboard },
     { label: "My Tasks", icon: CheckSquare },
@@ -341,6 +360,54 @@ function App() {
   }
   const completedCount = tasks.filter(task => task.status === "DONE").length;
   const activeCount = tasks.filter(task => task.status !== "DONE").length;
+  const notificationItems = useMemo(() => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return tasks
+      .filter(task => task.status !== "DONE")
+      .map(task => {
+        const dueDate = task.dueDate
+          ? new Date(String(task.dueDate).slice(0, 10) + "T00:00:00")
+          : null;
+        if (dueDate && !Number.isNaN(dueDate.getTime()) && dueDate < today) {
+          return {
+            id: task.id,
+            title: task.title,
+            message: "Overdue task",
+            detail: "Due " + formatDate(task.dueDate),
+            icon: AlertCircle,
+            color: "text-rose-600 bg-rose-50",
+            rank: 0
+          };
+        }
+        if (dueDate && !Number.isNaN(dueDate.getTime()) && dueDate.getTime() === today.getTime()) {
+          return {
+            id: task.id,
+            title: task.title,
+            message: "Due today",
+            detail: task.project?.name || "Your workspace",
+            icon: CalendarDays,
+            color: "text-amber-600 bg-amber-50",
+            rank: 1
+          };
+        }
+        if (task.priority === "HIGH") {
+          return {
+            id: task.id,
+            title: task.title,
+            message: "High priority",
+            detail: task.project?.name || "Your workspace",
+            icon: Zap,
+            color: "text-violet-600 bg-violet-50",
+            rank: 2
+          };
+        }
+        return null;
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.rank - b.rank)
+      .slice(0, 6);
+  }, [tasks]);
   const firstName = user?.name?.split(" ")[0] || "there";
   const initials = (user?.name || "TF")
     .split(" ")
@@ -528,8 +595,140 @@ function App() {
               <Search size={15} className="text-slate-400"/>
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search anything..." className="w-36 bg-transparent text-xs outline-none md:w-48"/>
             </div>
-            <button onClick={() => loadWorkspace()} title="Refresh data" className="rounded-xl p-2.5 text-slate-500 hover:bg-slate-100"><Bell size={19}/></button>
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-violet-100 text-xs font-bold text-violet-700">{initials}</div>
+            <div ref={headerActionsRef} className="relative flex items-center gap-2">
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setOpenMenu(current => current === "notifications" ? null : "notifications")}
+                  aria-label="Notifications"
+                  aria-expanded={openMenu === "notifications"}
+                  className={"relative rounded-xl p-2.5 transition " + (openMenu === "notifications" ? "bg-violet-50 text-violet-700" : "text-slate-500 hover:bg-slate-100")}
+                >
+                  <Bell size={19}/>
+                  {notificationItems.length > 0 && (
+                    <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white ring-2 ring-white">
+                      {notificationItems.length > 9 ? "9+" : notificationItems.length}
+                    </span>
+                  )}
+                </button>
+                {openMenu === "notifications" && (
+                  <div className="absolute right-0 top-12 z-50 w-[min(360px,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/70">
+                    <div className="flex items-center justify-between border-b border-slate-100 px-4 py-4">
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-900">Notifications</h3>
+                        <p className="mt-0.5 text-xs text-slate-400">Updates from your tasks</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => loadWorkspace()}
+                        title="Refresh workspace"
+                        className="rounded-lg px-3 py-2 text-xs font-semibold text-violet-600 hover:bg-violet-50"
+                      >
+                        Refresh
+                      </button>
+                    </div>
+                    {notificationItems.length > 0 ? (
+                      <div className="max-h-[360px] overflow-y-auto p-2">
+                        {notificationItems.map(item => {
+                          const ItemIcon = item.icon;
+                          return (
+                            <button
+                              type="button"
+                              key={item.id}
+                              onClick={() => {
+                                setActive("My Tasks");
+                                setOpenMenu(null);
+                              }}
+                              className="flex w-full items-start gap-3 rounded-xl p-3 text-left transition hover:bg-slate-50"
+                            >
+                              <span className={"mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl " + item.color}>
+                                <ItemIcon size={16}/>
+                              </span>
+                              <span className="min-w-0 flex-1">
+                                <span className="block truncate text-xs font-semibold text-slate-800">{item.title}</span>
+                                <span className="mt-1 block text-[11px] font-medium text-slate-500">{item.message}</span>
+                                <span className="mt-1 block truncate text-[10px] text-slate-400">{item.detail}</span>
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="px-5 py-9 text-center">
+                        <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-50 text-violet-500">
+                          <CircleCheck size={21}/>
+                        </span>
+                        <p className="mt-3 text-sm font-semibold text-slate-700">You're all caught up</p>
+                        <p className="mt-1 text-xs text-slate-400">No task reminders right now.</p>
+                      </div>
+                    )}
+                    <div className="border-t border-slate-100 px-4 py-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActive("My Tasks");
+                          setOpenMenu(null);
+                        }}
+                        className="w-full text-center text-xs font-semibold text-violet-600 hover:text-violet-700"
+                      >
+                        View all tasks
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setOpenMenu(current => current === "profile" ? null : "profile")}
+                  aria-label="Open profile menu"
+                  aria-expanded={openMenu === "profile"}
+                  className={"flex items-center gap-2 rounded-xl p-1.5 transition hover:bg-slate-50 " + (openMenu === "profile" ? "bg-violet-50" : "")}
+                >
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-100 to-pink-100 text-xs font-bold text-violet-700 ring-1 ring-violet-200/70">
+                    {initials}
+                  </span>
+                  <ChevronDown size={14} className="hidden text-slate-400 sm:block"/>
+                </button>
+                {openMenu === "profile" && (
+                  <div className="absolute right-0 top-12 z-50 w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/70">
+                    <div className="border-b border-slate-100 bg-gradient-to-br from-violet-50/80 to-pink-50/60 px-4 py-4">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-100 to-pink-100 text-xs font-bold text-violet-700">
+                          {initials}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-bold text-slate-800">{user?.name || "TeamForge member"}</span>
+                          <span className="mt-0.5 block truncate text-xs text-slate-500">{user?.email || ""}</span>
+                        </span>
+                      </div>
+                    </div>
+                    <div className="p-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActive("Settings");
+                          setOpenMenu(null);
+                        }}
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-slate-600 transition hover:bg-violet-50 hover:text-violet-700"
+                      >
+                        <Settings size={17}/> Settings
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOpenMenu(null);
+                          logout();
+                        }}
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-rose-600 transition hover:bg-rose-50"
+                      >
+                        <LogOut size={17}/> Sign out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </header>
         <div className="tf-content mx-auto max-w-[1440px] px-5 py-8 md:px-9 md:py-10">{/* TEAMFORGE_NAV_V3 */}
