@@ -1,10 +1,24 @@
+# Dependencies
 node_modules/
+# Build output
 dist/
+coverage/
+# Environment files and secrets
 .env
 .env.*
 !.env.example
-coverage/
+# Logs
 *.log
+# Operating system files
 .DS_Store
 Thumbs.db
+# Local backups and temporary files
 backups/
+*.bak
+*.backup
+*-backup*
+*.team-backup
+*.mobile-backup
+# Editor settings (keep personal workspace files out of commits)
+.vscode/
+.idea/
