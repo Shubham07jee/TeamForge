@@ -1,10 +1,16 @@
 import "dotenv/config";
+
+const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret || Buffer.byteLength(jwtSecret, "utf8") < 32) {
+  throw new Error("JWT_SECRET must be configured with at least 32 bytes.");
+}
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import rateLimit from "express-rate-limit";
 import multer from "multer";
 import { fileTypeFromBuffer } from "file-type";
 import { v2 as cloudinary } from "cloudinary";
@@ -38,6 +44,17 @@ const avatarUpload = multer({
   }
 });
 const app = express();
+app.set("trust proxy", 1);
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many authentication attempts. Please try again in 15 minutes."
+  }
+});
 app.use(helmet());
 const allowedOrigins = [
   "http://localhost:5173",
@@ -45,13 +62,13 @@ const allowedOrigins = [
   ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : [])
 ];
 app.use(cors({ origin: allowedOrigins }));
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
 app.use(morgan("dev"));
 function createToken(user) {
 return jwt.sign(
 { id: user.id, email: user.email },
 process.env.JWT_SECRET,
-{ expiresIn: "7d" }
+{ expiresIn: "7d", algorithm: "HS256" }
 );
 }
 async function authenticate(req, res, next) {
@@ -61,7 +78,7 @@ if (!token) {
 return res.status(401).json({ success: false, message: "Please log in." });
 }
 try {
-const payload = jwt.verify(token, process.env.JWT_SECRET);
+const payload = jwt.verify(token, jwtSecret, { algorithms: ["HS256"] });
 req.user = await prisma.user.findUnique({
 where: { id: payload.id },
 select: { id: true, name: true, email: true }
@@ -88,16 +105,8 @@ OR: [
 app.get("/api/health", (req, res) => {
 res.json({ success: true, message: "TeamForge backend is running!" });
 });
-app.get("/api/db-check", async (req, res) => {
-const totalUsers = await prisma.user.count();
-res.json({
-success: true,
-message: "Database connected successfully!",
-totalUsers
-});
-});
 // Authentication
-app.post("/api/auth/register", async (req, res) => {
+app.post("/api/auth/register", authLimiter, async (req, res) => {
 try {
 const { name, email, password } = req.body;
 if (!name?.trim() || !email?.trim() || !password) {
@@ -142,7 +151,7 @@ console.error("Registration error:", error);
 res.status(500).json({ success: false, message: "Registration failed." });
 }
 });
-app.post("/api/auth/login", async (req, res) => {
+app.post("/api/auth/login", authLimiter, async (req, res) => {
 try {
 const { email, password } = req.body;
 if (!email || !password) {
@@ -743,6 +752,25 @@ message: "Task not found."
 await prisma.task.delete({ where: { id: existing.id } });
 res.json({ success: true, message: "Task deleted successfully." });
 });
+// JSON 404 and centralized API error handling
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: "API endpoint not found." });
+});
+
+app.use((error, req, res, next) => {
+  if (res.headersSent) return next(error);
+  const status = Number.isInteger(error.status) && error.status >= 400 && error.status < 500
+    ? error.status
+    : 500;
+  if (status >= 500) console.error("Unhandled API error:", error);
+  const message = status === 413
+    ? "Request body is too large."
+    : status === 400
+      ? "Invalid request."
+      : "An unexpected server error occurred.";
+  res.status(status).json({ success: false, message });
+});
+
 const PORT = process.env.PORT || 5000;
 async function startServer() {
 try {

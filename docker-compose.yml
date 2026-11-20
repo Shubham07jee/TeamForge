@@ -1,11 +1,11 @@
-﻿services:
+services:
   postgres:
     image: postgres:17
     container_name: teamforge-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: teamforge_user
-      POSTGRES_PASSWORD: teamforge_local_2026
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in root .env}
       POSTGRES_DB: teamforge_db
     ports:
       - "5432:5432"
