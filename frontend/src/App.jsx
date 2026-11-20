@@ -4,7 +4,7 @@ import {
   CircleCheck, Command, FolderKanban, LayoutDashboard,
   LogOut, Plus, Search, Settings, Users, Zap, X
 } from "lucide-react";
-const API = "/api";
+const API = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "");
 async function api(path, options = {}, token = null) {
   const response = await fetch(API + path, {
     ...options,

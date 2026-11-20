@@ -13,9 +13,12 @@ connectionString: process.env.DATABASE_URL
 const prisma = new PrismaClient({ adapter });
 const app = express();
 app.use(helmet());
-app.use(cors({
-origin: ["http://localhost:5173", "http://localhost:5174"]
-}));
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : [])
+];
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 app.use(morgan("dev"));
 function createToken(user) {
