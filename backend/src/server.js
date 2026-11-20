@@ -186,6 +186,154 @@ include: { _count: { select: { tasks: true } } }
 });
 res.status(201).json({ success: true, data: project });
 });
+// Team
+app.get("/api/team", authenticate, async (req, res) => {
+  const projects = await prisma.project.findMany({
+    where: {
+      OR: [
+        { ownerId: req.user.id },
+        { members: { some: { userId: req.user.id } } }
+      ]
+    },
+    include: {
+      owner: {
+        select: { id: true, name: true, email: true }
+      },
+      members: {
+        include: {
+          user: {
+            select: { id: true, name: true, email: true }
+          }
+        },
+        orderBy: { joinedAt: "asc" }
+      },
+      _count: { select: { tasks: true } }
+    },
+    orderBy: { updatedAt: "desc" }
+  });
+  res.json({ success: true, data: projects });
+});
+app.post("/api/projects/:projectId/members", authenticate, async (req, res) => {
+  try {
+    const { email } = req.body;
+    const project = await prisma.project.findUnique({
+      where: { id: req.params.projectId }
+    });
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: "Project not found."
+      });
+    }
+    if (project.ownerId !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "Only the project owner can add members."
+      });
+    }
+    if (!email?.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Enter the member's email address."
+      });
+    }
+    const member = await prisma.user.findUnique({
+      where: { email: email.trim().toLowerCase() },
+      select: { id: true, name: true, email: true }
+    });
+    if (!member) {
+      return res.status(404).json({
+        success: false,
+        message: "No registered TeamForge account exists with that email."
+      });
+    }
+    if (member.id === req.user.id) {
+      return res.status(400).json({
+        success: false,
+        message: "You are already the project owner."
+      });
+    }
+    const existing = await prisma.projectMember.findUnique({
+      where: {
+        projectId_userId: {
+          projectId: project.id,
+          userId: member.id
+        }
+      }
+    });
+    if (existing) {
+      return res.status(409).json({
+        success: false,
+        message: "This user is already a project member."
+      });
+    }
+    const membership = await prisma.projectMember.create({
+      data: {
+        projectId: project.id,
+        userId: member.id,
+        role: "MEMBER"
+      },
+      include: {
+        user: {
+          select: { id: true, name: true, email: true }
+        }
+      }
+    });
+    res.status(201).json({
+      success: true,
+      message: "Team member added successfully.",
+      data: membership
+    });
+  } catch (error) {
+    console.error("Add team member error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Unable to add team member."
+    });
+  }
+});
+app.delete("/api/projects/:projectId/members/:memberId", authenticate, async (req, res) => {
+  const project = await prisma.project.findUnique({
+    where: { id: req.params.projectId }
+  });
+  if (!project) {
+    return res.status(404).json({
+      success: false,
+      message: "Project not found."
+    });
+  }
+  if (project.ownerId !== req.user.id) {
+    return res.status(403).json({
+      success: false,
+      message: "Only the project owner can remove members."
+    });
+  }
+  const membership = await prisma.projectMember.findFirst({
+    where: {
+      id: req.params.memberId,
+      projectId: project.id
+    }
+  });
+  if (!membership) {
+    return res.status(404).json({
+      success: false,
+      message: "Team membership not found."
+    });
+  }
+  if (membership.userId === project.ownerId || membership.role === "OWNER") {
+    return res.status(400).json({
+      success: false,
+      message: "The project owner cannot be removed."
+    });
+  }
+  await prisma.projectMember.delete({
+    where: { id: membership.id }
+  });
+  res.json({
+    success: true,
+    message: "Team member removed successfully."
+  });
+});
 // Tasks
 app.get("/api/tasks", authenticate, async (req, res) => {
 const projectFilter = req.query.projectId
