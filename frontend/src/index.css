@@ -1,6 +1,6 @@
 @import "tailwindcss";
 /* =========================================
-   TEAMFORGE â€” AURORA WHITE DESIGN SYSTEM
+   TEAMFORGE Ã¢â‚¬â€ AURORA WHITE DESIGN SYSTEM
    ========================================= */
 :root {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system,
@@ -209,7 +209,7 @@ select:focus-visible {
   }
 }
 /* ==========================================
-   AURORA WHITE â€” ENHANCED SHADING
+   AURORA WHITE Ã¢â‚¬â€ ENHANCED SHADING
    ========================================== */
 .teamforge-app {
   background:
@@ -584,7 +584,7 @@ select:focus-visible {
     transition: none !important;
   }
 }/* ==========================================================
-   TEAMFORGE — PREMIUM PROFESSIONAL AUTHENTICATION
+   TEAMFORGE â€” PREMIUM PROFESSIONAL AUTHENTICATION
    ========================================================== */
 .tf-auth-shell {
   position: relative;
@@ -1572,7 +1572,7 @@ body:has(.tf-auth-shell) {
     animation-timing-function: ease-in-out !important;
   }
 }
-/* TEAMFORGE — REMOVE OUTER AUTH CARD */
+/* TEAMFORGE â€” REMOVE OUTER AUTH CARD */
 .tf-auth-card {
   width: 100% !important;
   max-width: 560px !important;
@@ -1582,7 +1582,7 @@ body:has(.tf-auth-shell) {
   background: transparent !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
-}/* TEAMFORGE — SLOWER BUBBLES AND ROUNDED SIGN-IN CARD */
+}/* TEAMFORGE â€” SLOWER BUBBLES AND ROUNDED SIGN-IN CARD */
 .tf-auth-orb {
   animation-duration: 18s !important;
 }
@@ -1595,7 +1595,7 @@ body:has(.tf-auth-shell) {
   background: rgba(255, 255, 255, 0.82) !important;
   box-shadow: 0 18px 55px rgba(74, 58, 125, 0.10) !important;
   backdrop-filter: blur(16px) !important;
-}/* TEAMFORGE — FINAL OUTER AUTH WRAPPER AND BUBBLE SPEED FIX */
+}/* TEAMFORGE â€” FINAL OUTER AUTH WRAPPER AND BUBBLE SPEED FIX */
 .tf-auth-orb {
   animation-duration: 15s !important;
 }
@@ -1606,10 +1606,10 @@ body:has(.tf-auth-shell) {
   background: transparent !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
-}/* TEAMFORGE — INNER SIGN-IN PANEL ROUNDED CORNERS */
+}/* TEAMFORGE â€” INNER SIGN-IN PANEL ROUNDED CORNERS */
 .tf-auth-card {
   border-radius: 36px !important;
-}/* TEAMFORGE MOBILE RESPONSIVE PASS — REFINED */
+}/* TEAMFORGE MOBILE RESPONSIVE PASS â€” REFINED */
 .teamforge-app {
   width: 100%;
   min-width: 0;
@@ -1886,7 +1886,7 @@ body:has(.tf-auth-shell) {
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    overflow-x: hidden !important;
+    overflow-x: clip !important;
   }
   .tf-content,
   .tf-content * {
@@ -2002,7 +2002,8 @@ body:has(.tf-auth-shell) {
   }
   .tf-topbar {
     max-width: 100%;
-    overflow: hidden;
+    overflow: visible !important;
+    z-index: 100 !important;
   }
 }
 /* ANDROID: prevent automatic browser text inflation */

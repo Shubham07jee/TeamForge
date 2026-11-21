@@ -871,7 +871,7 @@ function App() {
         </div>
       </aside>
       <main className="min-h-screen lg:ml-[248px]">
-        <header className="tf-topbar sticky top-0 z-10 flex h-[72px] items-center justify-between border-b border-slate-200/80 bg-white/90 px-5 backdrop-blur-xl md:px-9">
+        <header className="tf-topbar sticky top-0 z-[100] flex h-[72px] items-center justify-between border-b border-slate-200/80 bg-white/90 px-5 backdrop-blur-xl md:px-9">
           <div className="flex items-center gap-3">
             <button
               type="button"
