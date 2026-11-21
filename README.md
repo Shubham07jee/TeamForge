@@ -1,242 +1,242 @@
-# TeamForge
-**Plan together. Build together. Deliver together.**
-TeamForge is a full-stack project and task collaboration platform designed to help teams organize projects, coordinate responsibilities, and track work from a centralized workspace.
-The application combines a React frontend with an Express API, PostgreSQL database, and Prisma ORM.
-## Features
-### Authentication and accounts
-- User registration and login
-- JWT-based authentication
-- Protected API endpoints
-- Profile viewing and editing
-- Profile picture upload and removal using Cloudinary
-### Projects and teams
-- Create and view projects
-- Project ownership
-- Add team members by email
-- Remove project members
-- Project membership-based access checks
-### Task management
-- Create, update, and delete tasks
-- Task descriptions and due dates
-- Task priorities and statuses
-- Project-associated tasks
-- List and Kanban task views
-### Workspace
-- Dashboard overview and task progress information
-- Responsive interface for desktop and mobile devices
-## Technology Stack
+ <div align="center">
+
+<img src="frontend/public/teamforge-logo.svg" width="120" alt="TeamForge Logo" />
+
+# TEAMFORGE
+
+### ✦ Plan together. Build together. Deliver together. ✦
+
+A workspace where teams turn ideas into execution.
+
+[![Live Demo](https://img.shields.io/badge/🌐_LIVE_DEMO-Visit_TeamForge-6366f1?style=for-the-badge)](https://team-forge-rouge.vercel.app/)
+[![Latest Release](https://img.shields.io/github/v/release/Shubham07jee/TeamForge?style=for-the-badge&color=8b5cf6)](https://github.com/Shubham07jee/TeamForge/releases/latest)
+[![License](https://img.shields.io/github/license/Shubham07jee/TeamForge?style=for-the-badge)](LICENSE)
+
+[Explore the App](https://team-forge-rouge.vercel.app/) · [Android Download](https://github.com/Shubham07jee/TeamForge/releases/latest) · [Report an Issue](https://github.com/Shubham07jee/TeamForge/issues)
+
+</div>
+
+---
+
+## ⚡ One workspace. Every moving part.
+
+TeamForge brings project organization, task management, and team collaboration into one place.
+
+No scattered workflows. No unnecessary complexity. Just a clearer way to move work forward.
+
+## ✨ What you can do
+
+| | Feature | Description |
+|---|---|---|
+| 🔐 | **Authentication** | Secure registration, login and JWT-based sessions |
+| 👥 | **Team Workspace** | Organize projects and manage team members |
+| 📁 | **Projects** | Create projects and coordinate ownership |
+| ✅ | **Task Management** | Create, update, prioritize and track tasks |
+| 🗂️ | **Kanban Board** | Visualize tasks through workflow stages |
+| 📊 | **Dashboard** | Get an overview of project and task progress |
+| 🖼️ | **Profiles** | Manage profiles and upload avatars |
+| 📱 | **Android App** | Take TeamForge with you using Capacitor |
+
+---
+
+## 🖥️ See TeamForge in action
+
+**Live application:** [team-forge-rouge.vercel.app](https://team-forge-rouge.vercel.app/)
+
+> Screenshots of the actual application will be added here.
+
+---
+
+## 📲 Android application
+
+<div align="center">
+
+### Your workspace, on the move.
+
+[![Download APK](https://img.shields.io/badge/⬇_DOWNLOAD-TEAMFORGE_v1.0.0-6366f1?style=for-the-badge)](https://github.com/Shubham07jee/TeamForge/releases/tag/v1.0.0)
+
+**Android package:** `com.teamforge.app`  
+**Version:** `1.0.0`
+
+</div>
+
+1. Visit the [v1.0.0 release page](https://github.com/Shubham07jee/TeamForge/releases/tag/v1.0.0).
+2. Download `TeamForge-Release.apk`.
+3. Open the APK on your Android device.
+4. Allow installation from the source if prompted.
+5. Install and launch TeamForge.
+
+---
+
+## 🛠️ Built with
+
+<div align="center">
+
+![React](https://img.shields.io/badge/React-20232a?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
+![Capacitor](https://img.shields.io/badge/Capacitor-119EFF?style=for-the-badge&logo=capacitor&logoColor=white)
+
+</div>
+
 | Layer | Technology |
 |---|---|
-| Frontend | React 19, JavaScript |
-| Build tool | Vite 8 |
+| Frontend | React 19, JavaScript, Vite 8 |
 | Styling | Tailwind CSS 4 |
 | Routing | React Router |
 | Charts | Recharts |
 | Backend | Node.js, Express 5 |
 | Database | PostgreSQL 17 |
 | ORM | Prisma 7 |
-| Authentication | JSON Web Tokens |
-| Password hashing | bcryptjs |
+| Authentication | JWT, bcryptjs |
 | Image storage | Cloudinary |
-| Database driver | node-postgres (`pg`) |
-| Local database | Docker Compose |
-## Project Structure
+| Android | Capacitor |
+
+---
+
+## 🏗️ How it works
+
 ```text
-TeamForge/
-├── backend/
-│   ├── prisma/
-│   │   ├── migrations/
-│   │   └── schema.prisma
-│   ├── src/
-│   │   ├── config/
-│   │   └── server.js
-│   ├── .env.example
-│   └── package.json
-├── frontend/
-│   ├── public/
-│   ├── src/
-│   │   ├── assets/
-│   │   ├── App.jsx
-│   │   ├── App.css
-│   │   ├── index.css
-│   │   └── main.jsx
-│   ├── .env.example
-│   └── package.json
-├── backups/
-├── docker-compose.yml
-├── .gitignore
-├── CHANGELOG.md
-├── CONTRIBUTING.md
-├── LICENSE
-└── README.md
+          ┌─────────────────────────┐
+          │      TEAMFORGE UI       │
+          │       React + Vite      │
+          └────────────┬────────────┘
+                       │
+                    HTTP API
+                       │
+          ┌────────────▼────────────┐
+          │      EXPRESS API        │
+          │  Authentication        │
+          │  Projects & Tasks       │
+          └────────────┬────────────┘
+                       │
+                   Prisma ORM
+                       │
+          ┌────────────▼────────────┐
+          │      POSTGRESQL         │
+          │        Database         │
+          └─────────────────────────┘
+
+          Android → Capacitor
+          Images  → Cloudinary
 ```
-## Getting Started
+
+---
+
+## 🚀 Run locally
+
 ### Prerequisites
-Install:
-- Node.js (22 LTS recommended)
-- npm
-- Docker Desktop with Docker Compose
+
+- Node.js and npm
+- PostgreSQL 17, or Docker Desktop
 - Git
+
 ### 1. Clone the repository
+
 ```bash
 git clone https://github.com/Shubham07jee/TeamForge.git
 cd TeamForge
 ```
-### 2. Start PostgreSQL
-From the project root:
-```bash
-docker compose up -d
-```
-Check the database container:
-```bash
-docker compose ps
-```
-The current local Compose configuration uses:
-- Database: `teamforge_db`
-- User: `teamforge_user`
-- Port: `5432`
-**Important:** The credentials currently present in the Compose file are for local development only. Replace them before using this configuration in any shared or production environment.
-### 3. Configure the backend
-```bash
+
+### 2. Configure the backend
+
+```powershell
 cd backend
 npm install
-```
-Create your environment file:
-**Windows PowerShell**
-```powershell
 Copy-Item .env.example .env
 ```
-Configure the variables in `backend/.env`:
-| Variable | Description |
-|---|---|
-| `PORT` | Backend server port |
-| `DATABASE_URL` | PostgreSQL connection string |
-| `JWT_SECRET` | Secret used to sign authentication tokens |
-| `FRONTEND_URL` | Frontend origin allowed by CORS |
-| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name |
-| `CLOUDINARY_API_KEY` | Cloudinary API key |
-| `CLOUDINARY_API_SECRET` | Cloudinary API secret |
-For the default local Docker Compose configuration, the database URL is:
-```env
-DATABASE_URL="postgresql://teamforge_user:teamforge_local_2026@localhost:5432/teamforge_db?schema=public"
-```
-Use a strong, unique JWT secret. Cloudinary credentials are required for profile picture uploads and removal; other application functionality can be developed without configuring image uploads.
-### 4. Apply database migrations
-From the `backend` directory:
-```bash
-npx prisma migrate deploy
-```
-Generate the Prisma client:
-```bash
-npm run db:generate
-```
-### 5. Start the backend
+
+Configure the backend environment variables in `backend/.env`, including your database connection and authentication settings.
+
+Start the backend:
+
 ```bash
 npm run dev
 ```
-The API runs on:
-```text
-http://localhost:5000
-```
-The health endpoint is:
-```text
-http://localhost:5000/api/health
-```
-### 6. Configure and start the frontend
+
+Backend: `http://localhost:5000`
+
+Health check: `http://localhost:5000/api/health`
+
+### 3. Configure the frontend
+
 Open a second terminal:
-```bash
+
+```powershell
 cd frontend
 npm install
-```
-Create the frontend environment file:
-**Windows PowerShell**
-```powershell
 Copy-Item .env.example .env
 ```
-The example configures the local API address. Update `VITE_API_URL` if your backend uses a different address.
-Start Vite:
+
+Configure `VITE_API_URL` if your backend uses a different address.
+
+Start the frontend:
+
 ```bash
 npm run dev
 ```
-Open the local URL printed by Vite, usually:
-```text
-http://localhost:5173
-```
-## Environment Configuration
-### Backend
-See [`backend/.env.example`](backend/.env.example).
-Never commit real credentials, database passwords, JWT secrets, or Cloudinary secrets.
-### Frontend
-See [`frontend/.env.example`](frontend/.env.example).
-`VITE_API_URL` must point to the backend API base URL, including `/api`, when the frontend and backend are deployed separately.
-Frontend environment variables are exposed to the browser. Never put private credentials in frontend variables.
-## API Reference
+
+Frontend: `http://localhost:5173`
+
+---
+
+## ⚙️ Environment variables
+
+| File | Purpose |
+|---|---|
+| `backend/.env.example` | Backend configuration template |
+| `frontend/.env.example` | Frontend configuration template |
+
+Never commit real credentials, database passwords, JWT secrets or Cloudinary secrets.
+
+Frontend variables are exposed to the browser. Never put private credentials in them.
+
+---
+
+## 🔌 API overview
+
 All API routes are served under `/api`.
-### Health
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/api/health` | API health check |
-| GET | `/api/db-check` | Database connectivity check |
-### Authentication
-| Method | Endpoint | Authentication |
-|---|---|---|
-| POST | `/api/auth/register` | Public |
-| POST | `/api/auth/login` | Public |
-| GET | `/api/auth/me` | Required |
-### Profile
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/api/profile` | Retrieve profile |
-| PATCH | `/api/profile` | Update profile |
-| POST | `/api/profile/avatar` | Upload profile picture |
-| DELETE | `/api/profile/avatar` | Remove profile picture |
-### Projects and teams
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/api/projects` | List accessible projects |
-| POST | `/api/projects` | Create project |
-| GET | `/api/team` | Retrieve team information |
-| POST | `/api/projects/:projectId/members` | Add a project member |
-| DELETE | `/api/projects/:projectId/members/:memberId` | Remove a project member |
-### Tasks
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/api/tasks` | List accessible tasks |
-| POST | `/api/tasks` | Create task |
-| PATCH | `/api/tasks/:id` | Update task |
-| DELETE | `/api/tasks/:id` | Delete task |
-Protected endpoints require a valid JWT access token in the `Authorization` header:
-```text
-Authorization: Bearer YOUR_ACCESS_TOKEN
-```
-The avatar upload endpoint accepts an image in the multipart form field named `avatar`.
-## Database
+
+| Area | Endpoints |
+|---|---|
+| Health | `/health`, `/db-check` |
+| Authentication | `/auth/register`, `/auth/login`, `/auth/me` |
+| Profile | `/profile`, `/profile/avatar` |
+| Projects | `/projects`, `/team` |
+| Project members | `/projects/:projectId/members` |
+| Tasks | `/tasks`, `/tasks/:id` |
+
+Protected endpoints require a valid JWT access token.
+
+---
+
+## 🗄️ Database
+
 TeamForge uses PostgreSQL with Prisma ORM.
-Current core models:
+
+Core models:
+
 - `User`
 - `Project`
 - `ProjectMember`
 - `Task`
-Task statuses:
-- `TODO`
-- `IN_PROGRESS`
-- `DONE`
-Task priorities:
-- `LOW`
-- `MEDIUM`
-- `HIGH`
-Database migrations are maintained in:
-```text
-backend/prisma/migrations/
-```
-Useful database commands, run from `backend/`:
-```bash
-npm run db:migrate
-npm run db:generate
-npm run db:studio
-```
-## Development Commands
-### Frontend
+
+Task statuses: `TODO`, `IN_PROGRESS`, `DONE`
+
+Task priorities: `LOW`, `MEDIUM`, `HIGH`
+
+Migrations are maintained in `backend/prisma/migrations/`.
+
+---
+
+## 🧑‍💻 Development commands
+
+**Frontend**
+
 ```bash
 cd frontend
 npm run dev
@@ -244,48 +244,70 @@ npm run lint
 npm run build
 npm run preview
 ```
-### Backend
+
+**Backend**
+
 ```bash
 cd backend
 npm run dev
 npm start
+npm run db:migrate
 npm run db:generate
 npm run db:studio
 ```
-Check backend JavaScript syntax:
-```bash
-node --check src/server.js
-```
-## Deployment
-TeamForge supports separate frontend and backend deployments.
-Configure the frontend's `VITE_API_URL` to point to the deployed backend API, and configure the backend's `FRONTEND_URL` to match the deployed frontend origin.
-Set all database, authentication, and Cloudinary secrets through the deployment platform's environment-variable settings.
-Do not use local development credentials in production.
-## Security Notes
-- Passwords are hashed with bcryptjs.
-- Authentication uses JWT.
-- Protected API routes use authentication middleware.
-- Helmet provides HTTP security headers.
-- CORS is configured for allowed frontend origins.
-- Database access is handled through Prisma.
-- Production secrets must be stored in environment variables.
-Report security vulnerabilities privately to the repository maintainer rather than posting exploitable details in public issues.
-## Roadmap
-TeamForge is under active development. Future improvements may include:
-- Expanded project editing and lifecycle management
-- Task comments and activity history
-- More advanced team permissions
-- Expanded notifications
-- Workload and collaboration improvements
-- Automated backend integration testing
-## Contributing
-Contributions, suggestions, and bug reports are welcome.
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting a pull request.
-## License
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
-## Author
-**Shubham Chaudhari**
-- GitHub: [@Shubham07jee](https://github.com/Shubham07jee)
-- Repository: [TeamForge](https://github.com/Shubham07jee/TeamForge)
+
 ---
-**TeamForge — Plan together. Build together. Deliver together.**
+
+## 🔒 Security
+
+- Password hashing with bcryptjs.
+- JWT-based authentication.
+- Protected API routes.
+- Helmet security headers.
+- Configurable CORS.
+- Prisma-based database access.
+- Environment-based production secrets.
+
+For security vulnerabilities, contact the repository maintainer privately rather than publishing exploitable details in public issues.
+
+---
+
+## 🗺️ What's next?
+
+TeamForge is actively evolving.
+
+- [ ] Expanded project lifecycle management
+- [ ] Task comments and activity history
+- [ ] More advanced team permissions
+- [ ] Expanded notifications
+- [ ] Workload and collaboration improvements
+- [ ] Automated backend integration testing
+
+---
+
+## 🤝 Contributing
+
+Contributions, ideas and bug reports are welcome!
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting a pull request.
+
+- [Report a bug](https://github.com/Shubham07jee/TeamForge/issues/new?template=bug_report.yml)
+- [Request a feature](https://github.com/Shubham07jee/TeamForge/issues/new?template=feature_request.yml)
+
+## 📄 License
+
+Released under the [MIT License](LICENSE).
+
+---
+
+<div align="center">
+
+### Made with focus. Built for teams. 🚀
+
+**[⭐ Star TeamForge](https://github.com/Shubham07jee/TeamForge)** if you like the project.
+
+[Website](https://team-forge-rouge.vercel.app/) · [GitHub](https://github.com/Shubham07jee) · [Releases](https://github.com/Shubham07jee/TeamForge/releases)
+
+<sub>TeamForge — Plan together. Build together. Deliver together.</sub>
+
+</div>
